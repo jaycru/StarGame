@@ -1,8 +1,12 @@
 Library/
 Temp/
+Obj/
+Logs/
+UserSettings/
+.vs/
 *.sln
 *.csproj
-*.sln
-*.userprefs
-*.unityproj
-*.DS_Store
+# *.sln
+# *.userprefs
+# *.unityproj
+# *.DS_Store

@@ -3,7 +3,11 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - Plane
+  - SkeletonArmy
+  - MusketeerArmy
+  - Red
   layers:
   - Default
   - TransparentFX
