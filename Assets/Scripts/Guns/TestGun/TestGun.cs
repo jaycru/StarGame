@@ -9,12 +9,14 @@ public class TestGun : MonoBehaviour
 {
     private int maxBullets = 30;//最大弹匣容量
     private int nowBullets = 20;//当前子弹数
+    private int hit;//子弹伤害
     private float shootSpeed = 1f;//射速（设计间隔）
     private float reloadTime = 1f;//换弹时间
     private Coroutine Shoot = null;//发射子弹协程
     private Coroutine Reload = null;//换弹协程 
     private bool isShooting;//是否在发射子弹
     private bool isReloading;//是否在换弹
+    public GameObject bullet;//子弹（临时用公共）
     void Start()
     {
 
@@ -81,6 +83,8 @@ public class TestGun : MonoBehaviour
     {
         while (isShooting)
         {
+            TestGunBullet testGunBullet = new TestGunBullet(hit,transform,bullet);
+            testGunBullet.PutBullet();
             nowBullets--;
             Debug.Log("Shooting! now Bullets are : " + nowBullets);
             yield return new WaitForSeconds(shootSpeed);
