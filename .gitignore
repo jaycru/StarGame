@@ -10,3 +10,11 @@ UserSettings/
 # *.userprefs
 # *.unityproj
 # *.DS_Store
+Logs/
+ProjectSettings/
+*.sln
+*.csproj
+*.sln
+*.userprefs
+*.unityproj
+*.DS_Store
