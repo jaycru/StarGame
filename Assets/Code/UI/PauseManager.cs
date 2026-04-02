@@ -47,6 +47,7 @@ public class PauseManager : MonoBehaviour
             }
             else
             {
+                Debug.Log("检测到 Esc 按下！"); 
                 TogglePause();
             }
         }
@@ -137,10 +138,20 @@ public class PauseManager : MonoBehaviour
         isPaused = false;
         pausePanel.SetActive(false);
         settingsPanel.SetActive(false);
-        Time.timeScale = 1f; // 恢复游戏世界
-        // 如果是第一人称游戏，取消下面两行注释:
-        // Cursor.lockState = CursorLockMode.Locked;
-        // Cursor.visible = false;
+        Time.timeScale = 1f;
+        
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+
+        // --- 【连线动作】通知所有相关脚本更新灵敏度 ---
+        
+        // 1. 找到玩家物体上的移动脚本并更新
+        PlayerMoveTest playerScript = FindObjectOfType<PlayerMoveTest>();
+        if (playerScript != null) playerScript.UpdateSensitivity();
+
+        // 2. 找到摄像机上的控制脚本并更新
+        TPSCameraControl cameraScript = FindObjectOfType<TPSCameraControl>();
+        if (cameraScript != null) cameraScript.UpdateSensitivity();
     }
 
     public void OpenSettingsInPause()
