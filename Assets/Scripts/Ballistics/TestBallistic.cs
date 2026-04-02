@@ -5,8 +5,8 @@ using UnityEngine;
 //*****************************************
 //创建人： Jaycr 
 //功能说明：测试弹道逻辑
-//方程：y(n) = a*n^b+c*sin(d*n)
-//     x(n) = e*f^n*sin(g*n)
+//方程：x(n) = a*n^b+c*sin(d*n)
+//     y(n) = e*f^n*sin(g*n)
 //***************************************** 
 public class TestBallistic : MonoBehaviour
 {
@@ -17,14 +17,21 @@ public class TestBallistic : MonoBehaviour
     private float horizontalInitialSwing;//水平摆动起始幅度e
     private float horizontalDamping;//水平摆动衰减系数f
     private float horizontalFrequency;//水平摆动频率g
-    void Start()
-    {
 
+    private Quaternion initialRotation;
+    /// <summary>
+    /// 初始化旋转偏移
+    /// </summary>
+    public void InitialRotation()
+    {
+        initialRotation = this.gameObject.transform.localRotation;
     }
-
-    void Update()
+    /// <summary>
+    /// 回到初始状态
+    /// </summary>
+    public void ReturnToInitialRotation()
     {
-
+        this.gameObject.transform.localRotation = initialRotation;
     }
     /// <summary>
     /// 初始化七大参数
@@ -53,11 +60,13 @@ public class TestBallistic : MonoBehaviour
     public void BallisticDeviation(int n)
     {
         float x = verticalLiftStrength * Mathf.Pow(n, verticalGrowthIndex)
-            + verticalSinus * Mathf.Sin(verticalFrequency * n);
+            + verticalSinus * Mathf.Sin(verticalFrequency * n);//垂直偏移
         float y = horizontalInitialSwing * Mathf.Pow(horizontalDamping, n)
-            * Mathf.Sin(horizontalFrequency * n);
-        Camera mainCamera = Camera.main;
-        mainCamera.transform.localRotation = Quaternion.Euler
-            (mainCamera.transform.localEulerAngles.x - y, mainCamera.transform.localEulerAngles.y + x, 0);
+            * Mathf.Sin(horizontalFrequency * n);//水平偏移
+        Debug.Log("The Horizontal movement is :" + y + " The Vertical movement is :" + x);
+        GameObject gun = this.gameObject;
+        gun.transform.localRotation = initialRotation * Quaternion.Euler(-x, y, 0);
+        //gun.transform.localRotation = Quaternion.Euler
+            //(gun.transform.localEulerAngles.x - x, gun.transform.localEulerAngles.y + y, 0);
     }
 }

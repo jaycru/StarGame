@@ -122,6 +122,37 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &348049605
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 348049606}
+  m_Layer: 0
+  m_Name: Mouth
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &348049606
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 348049605}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -0.00011396408, y: 0, z: 4.3002586}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 461001499}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &461001497
 GameObject:
   m_ObjectHideFlags: 0
@@ -161,12 +192,13 @@ Transform:
   m_GameObject: {fileID: 461001497}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0.14475928, z: -0, w: 0.9894669}
-  m_LocalPosition: {x: 0.208, y: -0.25, z: -3.45}
+  m_LocalPosition: {x: 1.44, y: -0.25, z: -7.57}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1740088394}
   - {fileID: 633159172}
+  - {fileID: 348049606}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: -16.647, z: 0}
 --- !u!1 &633159171
@@ -197,8 +229,8 @@ Transform:
   m_GameObject: {fileID: 633159171}
   serializedVersion: 2
   m_LocalRotation: {x: 0.5, y: 0.5, z: 0.5, w: 0.5}
-  m_LocalPosition: {x: 0.043874025, y: -0.017414331, z: -1.9804122}
-  m_LocalScale: {x: 1.012, y: 2.1400003, z: 1}
+  m_LocalPosition: {x: 0.04376018, y: -0.017414331, z: 2.3198464}
+  m_LocalScale: {x: 1.012, y: 2.1400006, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 461001499}
@@ -490,8 +522,8 @@ Transform:
   m_GameObject: {fileID: 1740088393}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.02651894, y: -0.6274142, z: -4.0553927}
-  m_LocalScale: {x: 1, y: 1.9599769, z: 0.59976006}
+  m_LocalPosition: {x: 0.026405256, y: -0.6274142, z: 0.24486612}
+  m_LocalScale: {x: 1, y: 1.9599769, z: 0.5997601}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 461001499}

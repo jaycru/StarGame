@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 //*****************************************
 //创建人： Jaycr 
@@ -8,9 +9,9 @@ using UnityEngine;
 public class TestGun : MonoBehaviour
 {
     private int maxBullets = 30;//最大弹匣容量
-    private int nowBullets = 20;//当前子弹数
+    private int nowBullets = 30;//当前子弹数
     private int hit;//子弹伤害
-    private float shootSpeed = 1f;//射速（设计间隔）
+    private float shootSpeed = 0.15f;//射速（射击间隔）
     private float reloadTime = 1f;//换弹时间
     private Coroutine Shoot = null;//发射子弹协程
     private Coroutine Reload = null;//换弹协程 
@@ -31,11 +32,11 @@ public class TestGun : MonoBehaviour
     /// </summary>
     public void ControlFire()
     {
-        if (Input.GetMouseButton(0))
+        if (Input.GetMouseButton(0) && nowBullets != 0)
         {
             StartFire();
         }
-        else if (Input.GetMouseButtonUp(0))
+        else if (Input.GetMouseButtonUp(0) || nowBullets == 0)
         {
             EndFire();
         }
@@ -81,15 +82,31 @@ public class TestGun : MonoBehaviour
     /// <returns></returns>
     private IEnumerator DoShoot()
     {
+        int n = 0;
+        this.AddComponent<TestBallistic>();
+        //初始化弹道偏移方程
+        TestBallistic testBallistic = GetComponent<TestBallistic>();
+        testBallistic.SetBallistic(0.14f, 1.3f, 0.03f, 0.8f, 0.5f, 0.96f, 1.0f);
+        testBallistic.InitialRotation();
         while (isShooting)
         {
-            TestGunBullet testGunBullet = new TestGunBullet(hit,transform,bullet);
+            //处理弹道偏移
+            testBallistic.BallisticDeviation(n);
+            //创建子弹
+            TestGunBullet testGunBullet = new TestGunBullet(hit,transform.GetChild(2),bullet);
             testGunBullet.PutBullet();
+            testGunBullet = null;
+            //循环更新数据
+            n++;
             nowBullets--;
+            //打印调试信息
             Debug.Log("Shooting! now Bullets are : " + nowBullets);
+            //返回间隔时间
             yield return new WaitForSeconds(shootSpeed);
         }
         Shoot = null;
+        GetComponent<TestBallistic>().ReturnToInitialRotation();
+        Destroy(GetComponent<TestBallistic>());
         yield return null;
     }
     /// <summary>
@@ -101,5 +118,13 @@ public class TestGun : MonoBehaviour
         yield return new WaitForSeconds(reloadTime);
         nowBullets = maxBullets;
         Debug.Log("Reloading! now Bullets are : " + nowBullets + "equals to " + maxBullets);
+    }
+
+    /// <summary>
+    /// 标准化旋转
+    /// </summary>
+    public void StandardizeRotation()
+    {
+
     }
 }

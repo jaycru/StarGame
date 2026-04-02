@@ -8,7 +8,7 @@ using UnityEngine;
 public class TestBullet : MonoBehaviour
 {
     private int hit;//子弹造成的伤害
-    private float speed = 1f;//子弹移动速度
+    private float speed = 2f;//子弹移动速度
     private Rigidbody rb;//子弹的刚体
     private float lifeTime = 5f;//最长存活时间（销毁保护）
     void Start()
