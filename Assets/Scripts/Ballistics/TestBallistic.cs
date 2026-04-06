@@ -20,20 +20,6 @@ public class TestBallistic : MonoBehaviour
 
     private Quaternion initialRotation;
     /// <summary>
-    /// 初始化旋转偏移
-    /// </summary>
-    public void InitialRotation()
-    {
-        initialRotation = this.gameObject.transform.localRotation;
-    }
-    /// <summary>
-    /// 回到初始状态
-    /// </summary>
-    public void ReturnToInitialRotation()
-    {
-        this.gameObject.transform.localRotation = initialRotation;
-    }
-    /// <summary>
     /// 初始化七大参数
     /// </summary>
     /// <param name="a"></param>
@@ -57,15 +43,17 @@ public class TestBallistic : MonoBehaviour
     /// 弹道偏移
     /// </summary>
     /// <param name="n"></param>
-    public void BallisticDeviation(int n)
+    public Vector2 BallisticDeviation(int n)
     {
         float x = verticalLiftStrength * Mathf.Pow(n, verticalGrowthIndex)
             + verticalSinus * Mathf.Sin(verticalFrequency * n);//垂直偏移
         float y = horizontalInitialSwing * Mathf.Pow(horizontalDamping, n)
             * Mathf.Sin(horizontalFrequency * n);//水平偏移
         Debug.Log("The Horizontal movement is :" + y + " The Vertical movement is :" + x);
-        GameObject gun = this.gameObject;
-        gun.transform.localRotation = initialRotation * Quaternion.Euler(-x, y, 0);
+        //GameObject gun = this.gameObject;
+        //gun.transform.localRotation = gun.transform.localRotation * Quaternion.Euler(-x, y, 0);//修改：以现在作为朝向做偏移
+        Vector2 direction = new Vector2(x, y);
+        return direction;
         //gun.transform.localRotation = Quaternion.Euler
             //(gun.transform.localEulerAngles.x - x, gun.transform.localEulerAngles.y + y, 0);
     }
