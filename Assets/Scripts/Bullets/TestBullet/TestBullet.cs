@@ -8,9 +8,11 @@ using UnityEngine;
 public class TestBullet : MonoBehaviour
 {
     private int hit;//子弹造成的伤害
-    private float speed = 2f;//子弹移动速度
+    private float speed = 10f;//子弹移动速度
     private Rigidbody rb;//子弹的刚体
     private float lifeTime = 5f;//最长存活时间（销毁保护）
+    private bool isHit;//是否碰撞
+    private string enemyTag;//敌人的标记
     void Start()
     {
         Debug.Log("Successfully Instantiate! Now hit is " + hit);
@@ -22,6 +24,35 @@ public class TestBullet : MonoBehaviour
     {
         Move();
     } 
+    /// <summary>
+    /// 控制碰撞（造成伤害）
+    /// </summary>
+    public void ControlHit()
+    {
+        if (isHit)
+        {
+            Hit();
+        }
+    }
+    /// <summary>
+    /// 碰撞检测
+    /// </summary>
+    /// <returns></returns>
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.transform.tag == enemyTag)
+        {
+            Debug.Log("Successfully Hit!");
+            isHit = true;
+        }
+    }
+    /// <summary>
+    /// 管理碰撞
+    /// </summary>
+    private void Hit()
+    {
+        Destroy(gameObject);
+    }
     /// <summary>
     /// 初始化面朝方向模块
     /// </summary>
@@ -36,6 +67,8 @@ public class TestBullet : MonoBehaviour
     {
         //拿到自身的引用
         rb = GetComponent<Rigidbody>();
+        //拿到敌人的标签
+        enemyTag = "Enemy";
     }
     /// <summary>
     /// 移动模块
