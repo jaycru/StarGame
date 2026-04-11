@@ -18,17 +18,32 @@ public class TestGun : MonoBehaviour
     private bool isShooting;//是否在发射子弹
     private bool isReloading;//是否在换弹
     private Vector2 lastDirection;//系统记忆的上一个枪身偏移位
+    private AmmoText ammoTextComponent;//弹药显示UI脚本
+    public TestBallistic testBallistic;//弹道偏移脚本
     public GameObject bullet;//子弹（临时用公共）
     public GameObject bulletMouth;//弹口（临时用公共） 
+    public GameObject ammoText;//弹药显示UI
     void Start()
     {
-
+        Initialize();
     }
     void Update()
     {
         ControlDirection();
         ControlFire();
         ControlReload();
+    }
+    /// <summary>
+    /// 初始化
+    /// </summary>
+    private void Initialize()
+    {
+        Debug.Log("Initialize");
+        //初始化弹药UI显示
+        ammoTextComponent = ammoText.GetComponent<AmmoText>();
+        //初始化弹道偏移方程
+        testBallistic = this.AddComponent<TestBallistic>();
+        testBallistic.SetBallistic(0.14f, 1.3f, 0.03f, 0.8f, 0.5f, 0.96f, 1.0f);
     }
     /// <summary>
     /// 操控枪口朝向，即枪口初始永远朝向屏幕正中，然后根据开枪状态调整枪口偏移
@@ -103,12 +118,9 @@ public class TestGun : MonoBehaviour
     private IEnumerator DoShoot()
     {
         int n = 0;
-        this.AddComponent<TestBallistic>();
-        //初始化弹道偏移方程
-        TestBallistic testBallistic = GetComponent<TestBallistic>();
-        testBallistic.SetBallistic(0.14f, 1.3f, 0.03f, 0.8f, 0.5f, 0.96f, 1.0f);
         while (isShooting)
         {
+            Debug.Log("n =" + n);
             //处理弹道偏移
             lastDirection = testBallistic.BallisticDeviation(n);
             //创建子弹
@@ -118,13 +130,13 @@ public class TestGun : MonoBehaviour
             //循环更新数据
             n++;
             nowBullets--;
+            ammoTextComponent.Display(nowBullets);
             //打印调试信息
             Debug.Log("Shooting! now Bullets are : " + nowBullets);
             //返回间隔时间
             yield return new WaitForSeconds(shootSpeed);
         }
         Shoot = null;
-        Destroy(GetComponent<TestBallistic>());
         yield return null;
     }
     /// <summary>
@@ -135,6 +147,7 @@ public class TestGun : MonoBehaviour
     {
         yield return new WaitForSeconds(reloadTime);
         nowBullets = maxBullets;
+        ammoTextComponent.Display(maxBullets);
         Debug.Log("Reloading! now Bullets are : " + nowBullets + "equals to " + maxBullets);
         Reload = null;
     }

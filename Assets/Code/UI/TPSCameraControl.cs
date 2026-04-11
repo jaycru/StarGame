@@ -6,7 +6,7 @@ public class TPSCameraControl : MonoBehaviour
     public Transform player;         // 拖入玩家物体
     
     [Header("视角偏移")]
-    public Vector3 offset = new Vector3(0, 1.5f, -3.0f); // 初始偏移（x左右, y上下, z前后）
+    public Vector3 offset = new Vector3(0, 1.5f, -3f); // 初始偏移（x左右, y上下, z前后）
     
     [Header("旋转设置")]
     public float sensitivityMultiplier = 1.0f; // 灵敏度倍率
