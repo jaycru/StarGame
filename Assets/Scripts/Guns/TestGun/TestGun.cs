@@ -19,6 +19,7 @@ public class TestGun : MonoBehaviour
     private bool isReloading;//是否在换弹
     private Vector2 lastDirection;//系统记忆的上一个枪身偏移位
     public GameObject bullet;//子弹（临时用公共）
+    public GameObject bulletMouth;//弹口（临时用公共） 
     void Start()
     {
 
@@ -36,12 +37,14 @@ public class TestGun : MonoBehaviour
     {
         Camera mainCamera = Camera.main;
         transform.rotation = mainCamera.transform.rotation;
+        bulletMouth.transform.rotation = mainCamera.transform.rotation;
         if (isShooting)
         {
             GameObject gun = this.gameObject;
             float x = lastDirection.x;
             float y = lastDirection.y;
             gun.transform.localRotation = gun.transform.localRotation * Quaternion.Euler(-x, y, 0);
+            bulletMouth.transform.localRotation = bulletMouth.transform.localRotation * Quaternion.Euler(-x, y, 0);
         }
     }
     /// <summary>
@@ -109,7 +112,7 @@ public class TestGun : MonoBehaviour
             //处理弹道偏移
             lastDirection = testBallistic.BallisticDeviation(n);
             //创建子弹
-            TestGunBullet testGunBullet = new TestGunBullet(hit,transform.GetChild(1),bullet);
+            TestGunBullet testGunBullet = new TestGunBullet(hit, bulletMouth.transform, bullet);
             testGunBullet.PutBullet();
             testGunBullet = null;
             //循环更新数据
