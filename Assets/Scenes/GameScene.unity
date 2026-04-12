@@ -3992,7 +3992,7 @@ Camera:
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 55
+    m_Bits: 4294967295
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
@@ -4045,7 +4045,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   player: {fileID: 1699022258}
-  offset: {x: 0, y: 0.5, z: -1}
+  offset: {x: 0, y: 1.5, z: -3}
   sensitivityMultiplier: 1
   baseSensitivity: 2
   minY: -20
