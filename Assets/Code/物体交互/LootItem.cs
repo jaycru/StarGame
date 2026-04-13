@@ -1,8 +1,8 @@
 using UnityEngine;
-[System.Serializable]
 
+[System.Serializable]
 public class LootItem
 {
-    public string itemName;
-    public int amount;
+    public ItemAsset details; // 关联我们创建的 ScriptableObject 身份卡
+    public int amount;        // 数量
 }

@@ -6,7 +6,7 @@ using System.Collections.Generic;
 public class InteractionManager : MonoBehaviour
 {
     [Header("探测设置")]
-    public float detectDistance = 3f;
+    public float detectDistance;
     public LayerMask interactLayer;
 
     [Header("UI 引用")]
@@ -22,9 +22,11 @@ public class InteractionManager : MonoBehaviour
     {
         Ray ray = new Ray(transform.position, transform.forward);
         RaycastHit hit;
+        Debug.DrawRay(transform.position, transform.forward * detectDistance, Color.red);
 
         if (Physics.Raycast(ray, out hit, detectDistance, interactLayer))
         {
+            Debug.Log("Successfully Ray!");
             Interactable obj = hit.collider.GetComponent<Interactable>();
             if (obj != null)
             {
@@ -56,7 +58,7 @@ public class InteractionManager : MonoBehaviour
             promptUI.SetActive(true);
             lootUI.SetActive(false);
             promptText.text = "[F] " + target.simpleActionName;
-            
+
             // 简单交互不需要鼠标，确保它锁好
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
@@ -65,7 +67,7 @@ public class InteractionManager : MonoBehaviour
         {
             promptUI.SetActive(false);
             lootUI.SetActive(true);
-            
+
             // 【关键】只有看到物资列表时，才释放鼠标让玩家点
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
@@ -79,7 +81,7 @@ public class InteractionManager : MonoBehaviour
     {
         promptUI.SetActive(false);
         lootUI.SetActive(false);
-        
+
         // 【关键】UI消失时，必须把鼠标重新锁回屏幕中心，否则玩家没法继续转头
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
@@ -87,37 +89,43 @@ public class InteractionManager : MonoBehaviour
 
     public void RefreshLootList(Interactable container)
     {
-
+        // 1. 如果容器空了，关闭 UI
         if (container.itemsInObject.Count == 0)
         {
-            ClearUI(); // 这个函数会把整个面板 SetActive(false)
+            ClearUI();
             return;
         }
-        // 清空旧条目
+
+        // 2. 清空旧条目
         foreach (Transform child in lootContent) Destroy(child.gameObject);
 
-        // 生成新条目
+        // 3. 重新生成条目
         for (int i = 0; i < container.itemsInObject.Count; i++)
         {
+            Debug.Log("Enter circle");
             int index = i;
             LootItem item = container.itemsInObject[index];
 
+            // 防止数据为空导致崩溃
+            if (item.details == null) continue;
+
             GameObject slot = Instantiate(itemSlotPrefab, lootContent);
-            slot.GetComponentInChildren<TextMeshProUGUI>().text = $"{item.itemName} x{item.amount}";
 
-            // 绑定拾取按钮
+            // --- 修复报错 1：访问 details 里的名字 ---
+            slot.GetComponentInChildren<TextMeshProUGUI>().text = $"{item.details.itemName} x{item.amount}";
+
+            // 绑定按钮
             slot.GetComponent<Button>().onClick.AddListener(() => {
-                // 1. 加入玩家背包
-                if(InventoryManager.Instance != null) 
-                    InventoryManager.Instance.AddItem(item);
 
-                // 2. 从箱子删除
+                // --- 修复报错 2：传入 asset 和 amount 两个参数 ---
+                if (InventoryManager.Instance != null)
+                {
+                    InventoryManager.Instance.AddItem(item.details, item.amount);
+                }
+
                 container.itemsInObject.RemoveAt(index);
-
-                // 3. 递归刷新
                 RefreshLootList(container);
 
-                // 4. 如果捡完了，自动关闭
                 if (container.itemsInObject.Count == 0) ClearUI();
             });
         }

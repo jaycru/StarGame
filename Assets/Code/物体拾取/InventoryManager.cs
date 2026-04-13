@@ -1,31 +1,39 @@
 using UnityEngine;
 using System.Collections.Generic;
-using TMPro; // 必须引用，用于控制格子里的数量文字
+using TMPro; // 必须引用，用于解析格子里的数字文本
 
 public class InventoryManager : MonoBehaviour
 {
-    // 单例模式，全游戏唯一的背包管家
     public static InventoryManager Instance;
 
-    [Header("UI 面板引用")]
-    public GameObject inventoryPanel; // 整个背包 Canvas 下的 Panel
-    public Transform gridParent;      // 那个带 Grid Layout Group 的 GridWindow
-    public GameObject slotPrefab;     // 刚才做的 InventorySlot 预制体
+    [Header("UI 引用")]
+    public GameObject inventoryPanel;
+    public Transform gridParent;       // 刚才报错的变量，现在已补全
 
-    [Header("背包数据")]
-    // 所有的物资都存在这个 List 里
-    public List<LootItem> items = new List<LootItem>();
+    [Header("内部格位名单")]
+    public InventorySlotUI[] allSlots; // 系统启动时会自动填满这个名单
 
     void Awake()
     {
-        // 确保单例唯一性
+        // 初始化单例，方便拾取脚本调用
         if (Instance == null) Instance = this;
     }
 
     void Start()
     {
-        // 初始时关闭背包界面
-        if(inventoryPanel != null) inventoryPanel.SetActive(false);
+        // 1. 游戏开始时隐藏背包
+        if (inventoryPanel != null) inventoryPanel.SetActive(false);
+
+        // 2. 自动搜索 gridParent 下所有的格子脚本并存入名单
+        if (gridParent != null)
+        {
+            allSlots = gridParent.GetComponentsInChildren<InventorySlotUI>();
+            Debug.Log($"背包系统初始化成功：共识别到 {allSlots.Length} 个存储格。");
+        }
+        else
+        {
+            Debug.LogError("错误：请在 Inspector 面板将 GridWindow 物体拖入 Grid Parent 槽位！");
+        }
     }
 
     void Update()
@@ -37,74 +45,52 @@ public class InventoryManager : MonoBehaviour
         }
     }
 
-    // --- 逻辑1：开关背包 ---
+    // --- 逻辑：开关控制 ---
     public void ToggleInventory()
     {
-        // 如果死亡界面或者暂停菜单开着，建议不允许开背包（可选逻辑）
-        if (Time.timeScale == 0 && !inventoryPanel.activeSelf) return;
-
         bool isActive = !inventoryPanel.activeSelf;
         inventoryPanel.SetActive(isActive);
 
         if (isActive)
         {
-            RefreshUI(); // 每次打开时刷新格子显示
+            // 打开背包：释放鼠标，显示指针
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
-            // Time.timeScale = 0f; // 如果你希望开背包时游戏暂停，取消这行注释
+            // Time.timeScale = 0f; // 如果你想让背包打开时游戏暂停，取消这行注释
         }
         else
         {
+            // 关闭背包：重新锁定鼠标
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
-            // Time.timeScale = 1f; // 配合上面的暂停使用
+            // Time.timeScale = 1f;
         }
     }
 
-    // --- 逻辑2：捡东西时调用（之前拾取功能调用的就是这个） ---
-    public void AddItem(LootItem newItem)
+    public void AddItem(ItemAsset asset, int count)
     {
-        // 检查背包里是否已经有同名的东西
-        LootItem existingItem = items.Find(x => x.itemName == newItem.itemName);
-
-        if (existingItem != null)
+        // 1. 【堆叠逻辑】比对身份卡，而不是比对图片
+        foreach (InventorySlotUI slot in allSlots)
         {
-            existingItem.amount += newItem.amount; // 叠加数量
-        }
-        else
-        {
-            // 如果是新种类，存入列表（创建一个副本防止引用错误）
-            items.Add(new LootItem { itemName = newItem.itemName, amount = newItem.amount });
-        }
-
-        Debug.Log($"背包已收到: {newItem.itemName} x{newItem.amount}");
-        
-        // 如果捡东西时背包正好开着，实时刷新一下
-        if (inventoryPanel.activeSelf) RefreshUI();
-    }
-
-    // --- 逻辑3：将数据转化为 UI 格子 ---
-    public void RefreshUI()
-    {
-        // 1. 先把旧的格子全部删掉（清空视觉效果）
-        foreach (Transform child in gridParent)
-        {
-            Destroy(child.gameObject);
-        }
-
-        // 2. 根据数据列表，重新生成新的格子
-        foreach (LootItem i in items)
-        {
-            GameObject newSlot = Instantiate(slotPrefab, gridParent);
-            
-            // 填充格子里的文字（假设你的预制体里有一个 TMP 文字）
-            TextMeshProUGUI amountText = newSlot.GetComponentInChildren<TextMeshProUGUI>();
-            if (amountText != null)
+            // 核心修改：判断格子里存的“身份卡”是否等于正要捡的“身份卡”
+            if (slot.isFull && slot.currentItemAsset == asset)
             {
-                amountText.text = i.amount.ToString();
+                int currentCount = int.Parse(slot.amountText.text);
+                slot.SetItem(asset, currentCount + count);
+                Debug.Log($"{asset.itemName} 堆叠成功。");
+                return;
             }
-            
-            // 以后在这里添加：根据名字显示对应的 Icon 图片
         }
+
+        // 2. 【寻找空位逻辑】保持不变
+        foreach (InventorySlotUI slot in allSlots)
+        {
+            if (!slot.isFull)
+            {
+                slot.SetItem(asset, count);
+                return;
+            }
+        }
+        Debug.LogWarning("背包已满！");
     }
 }
