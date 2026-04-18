@@ -39,7 +39,7 @@ public class MainMoveCtrler : MonoBehaviour
         Cursor.visible = false;
     }
 
-    void Update()
+    void FixedUpdate()
     {
         HandleLook();
         HandleMovement();

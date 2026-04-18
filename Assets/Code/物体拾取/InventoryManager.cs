@@ -56,14 +56,14 @@ public class InventoryManager : MonoBehaviour
             // 打开背包：释放鼠标，显示指针
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
-            // Time.timeScale = 0f; // 如果你想让背包打开时游戏暂停，取消这行注释
+            Time.timeScale = 0f; // 如果你想让背包打开时游戏暂停，取消这行注释
         }
         else
         {
             // 关闭背包：重新锁定鼠标
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
-            // Time.timeScale = 1f;
+            Time.timeScale = 1f;
         }
     }
 
