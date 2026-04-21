@@ -17,7 +17,9 @@ public class TextOut : MonoBehaviour
     private TextMeshProUGUI[] optionsPro = new TextMeshProUGUI[4];//可选择项
     private string[] lines;
     private int count;//聊天行数
-    private bool optionStage;//选择状态
+    private int optionCount;//选择数量
+    private int nextAddCount;//下一次增加的行数
+    private bool optionStage = false;//选择状态
     void Start()
     {
         nameText = transform.GetChild(0).gameObject;
@@ -46,6 +48,15 @@ public class TextOut : MonoBehaviour
         }
     }
 
+    private void ClearOptions(int optionCount)
+    {
+        for (int i = 0;i < optionCount; i++)
+        {
+            options[i].SetActive(false);
+            optionsPro[i].text = string.Empty;
+        }
+    }
+
     public void SetText(TextAsset textAsset)
     {
         this.textAsset = textAsset;
@@ -61,8 +72,9 @@ public class TextOut : MonoBehaviour
 
     private void ChangeText()
     {
-        //按下左键或F键时，跳转下一行
-        if (Input.GetButtonUp("Interact") || Input.GetMouseButtonUp(0))
+        int hit;
+        //非选择状态，按下左键或F键时，跳转下一行
+        if (!optionStage && (Input.GetButtonUp("Interact") || Input.GetMouseButtonUp(0)))
         {
             count++;
             if (count >= lines.Length)
@@ -72,6 +84,18 @@ public class TextOut : MonoBehaviour
             else
             {
                 ChangeLine();
+            }
+        }
+        else if (optionStage && ButtonOption(out hit))
+        {
+            Debug.Log("Into Option");
+            if (hit <= optionCount)
+            {
+                count += hit;
+                ChangeLine();
+                ClearOptions(optionCount);
+                count += (optionCount - hit);
+                optionStage = false;
             }
         }
     }
@@ -88,8 +112,10 @@ public class TextOut : MonoBehaviour
         //包含可选项
         else
         {
+            optionStage = true;
             string[] option = line.Split(new char[] {'['}, System.StringSplitOptions.RemoveEmptyEntries);
             int optionsCount = option.Length;
+            optionCount = optionsCount;
             for (int i = 0; i < optionsCount; i++)
             {
                 string optionString = option[i].Substring(3);
@@ -117,5 +143,23 @@ public class TextOut : MonoBehaviour
     public void AwakeBrother()
     {
         transform.parent.GetChild(0).gameObject.SetActive(true);
+    }
+
+    private bool ButtonOption(out int hit)
+    {
+        hit = 0;
+        if (Input.GetButtonUp("Option1"))
+        {
+            hit = 1;
+        }
+        else if (Input.GetButtonUp("Option2"))
+        {
+            hit = 2;
+        }
+        else if (Input.GetButtonUp("Option3"))
+        {
+            hit = 3;
+        }
+        return Input.GetButtonUp("Option1") | Input.GetButtonUp("Option2") | Input.GetButtonUp("Option3");
     }
 }
