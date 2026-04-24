@@ -7,7 +7,7 @@ using UnityEngine;
 //***************************************** 
 public class TestGunBullet
 {
-    private int hit;//伤害
+    private int hit=30;//伤害
     private float speed = 1f;//子弹移动速度
     private Transform gunTrans;//发射子弹的枪
     private GameObject bullet;//子弹

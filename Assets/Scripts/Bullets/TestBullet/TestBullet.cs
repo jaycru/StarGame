@@ -7,8 +7,8 @@ using UnityEngine;
 //***************************************** 
 public class TestBullet : MonoBehaviour
 {
-    private int hit;//子弹造成的伤害
-    private float speed = 10f;//子弹移动速度
+    private int hit = 30;//子弹造成的伤害
+    private float speed = 100f;//子弹移动速度
     private Rigidbody rb;//子弹的刚体
     private float lifeTime = 5f;//最长存活时间（销毁保护）
     private bool isHit;//是否碰撞
@@ -40,10 +40,17 @@ public class TestBullet : MonoBehaviour
     /// <returns></returns>
     private void OnTriggerEnter(Collider other)
     {
-        if (other.transform.tag == enemyTag)
+        if (other.transform.CompareTag(enemyTag))
         {
             Debug.Log("Successfully Hit!");
-            isHit = true;
+            EnemyHealth enemyHealth = other.GetComponent<EnemyHealth>();
+
+            if (enemyHealth != null)
+            {
+                Debug.Log("hit:" + hit);
+                enemyHealth.TakeDamage(hit);
+            }
+            Destroy(gameObject);
         }
     }
     /// <summary>
