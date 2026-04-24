@@ -20,13 +20,17 @@ public class TextOut : MonoBehaviour
     private int optionCount;//选择数量
     private int nextAddCount;//下一次增加的行数
     private bool optionStage = false;//选择状态
-    void Start()
+    void Awake()
     {
         nameText = transform.GetChild(0).gameObject;
         chatText = transform.GetChild(1).gameObject;
         namePro = nameText.GetComponent<TextMeshProUGUI>();
         chatPro = chatText.GetComponent<TextMeshProUGUI>();
         InitialOptions();
+    }
+
+    void OnEnable()
+    {
         lines = ReadLine();
         namePro.text = lines[0];
         chatPro.text = lines[1];
@@ -105,15 +109,25 @@ public class TextOut : MonoBehaviour
     private void ChangeLine()
     {
         string line = lines[count];
+        //切换说话对象
+        if (line[0] == '{')
+        {
+            namePro.text = "Star";
+            line = line.Substring(1);
+        }
+        else
+        {
+            namePro.text = lines[0];
+        }
         if (line[0] != '[')
         {
-            chatPro.text = lines[count];
+            chatPro.text = line;
         }
         //包含可选项
         else
         {
             optionStage = true;
-            string[] option = line.Split(new char[] {'['}, System.StringSplitOptions.RemoveEmptyEntries);
+            string[] option = line.Split(new char[] { '[' }, System.StringSplitOptions.RemoveEmptyEntries);
             int optionsCount = option.Length;
             optionCount = optionsCount;
             for (int i = 0; i < optionsCount; i++)
@@ -131,18 +145,18 @@ public class TextOut : MonoBehaviour
     {
         chatPro.text = lines[1];
         count = 1;
-        Time.timeScale = 1.0f;
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
-        gameObject.SetActive(false);
-        AwakeBrother();
+        AwakeBrother(true);
+        GameSceneManager.instance.SetGamePlayActive(false, null);
     }
     /// <summary>
     /// 唤醒兄弟物体（即按钮）
     /// </summary>
-    public void AwakeBrother()
+    public void AwakeBrother(bool awakema)
     {
-        transform.parent.GetChild(0).gameObject.SetActive(true);
+        if (awakema)
+            transform.parent.GetChild(0).gameObject.SetActive(true);
+        else
+            transform.parent.GetChild(0).gameObject.SetActive(false);
     }
 
     private bool ButtonOption(out int hit)

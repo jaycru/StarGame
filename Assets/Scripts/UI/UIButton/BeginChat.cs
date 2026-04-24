@@ -12,14 +12,7 @@ public class BeginChat : HoldButton
     private TextOut textOut;
     protected override void Effect()
     {
-        Time.timeScale = 0;
-        chatTextTrans = transform.parent.GetChild(1);//初始化文本UI块
-        textOut = chatTextTrans.GetComponent<TextOut>();//初始化对应TextOut脚本
-        textOut.SetText(textAsset);
-        chatTextTrans.gameObject.SetActive(true);
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
-        Debug.Log("开始对话");
+        GameSceneManager.instance.SetGamePlayActive(true, textAsset);
         gameObject.SetActive(false);
     }
 

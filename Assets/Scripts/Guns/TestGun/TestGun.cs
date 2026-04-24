@@ -51,8 +51,11 @@ public class TestGun : MonoBehaviour
     public void ControlDirection()
     {
         Camera mainCamera = Camera.main;
-        transform.rotation = mainCamera.transform.rotation;
-        bulletMouth.transform.rotation = mainCamera.transform.rotation;
+        if (mainCamera != null)
+        {
+            transform.rotation = mainCamera.transform.rotation;
+            bulletMouth.transform.rotation = mainCamera.transform.rotation;
+        }
         if (isShooting)
         {
             GameObject gun = this.gameObject;
@@ -67,7 +70,7 @@ public class TestGun : MonoBehaviour
     /// </summary>
     public void ControlFire()
     {
-        if (Input.GetMouseButton(0) && nowBullets != 0)
+        if (Input.GetMouseButton(0) && nowBullets != 0 && !isReloading)
         {
             StartFire();
         }
@@ -145,7 +148,9 @@ public class TestGun : MonoBehaviour
     /// <returns></returns>
     private IEnumerator DoReload()
     {
+        isReloading = true;
         yield return new WaitForSeconds(reloadTime);
+        isReloading = false;
         nowBullets = maxBullets;
         ammoTextComponent.Display(maxBullets);
         Debug.Log("Reloading! now Bullets are : " + nowBullets + "equals to " + maxBullets);
