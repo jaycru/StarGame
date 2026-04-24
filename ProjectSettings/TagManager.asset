@@ -4,15 +4,14 @@
 TagManager:
   serializedVersion: 2
   tags:
-  - Plane
-  - SkeletonArmy
-  - MusketeerArmy
-  - Red
+  - DonotSee
+  - Enemy
+  - HealthBar
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - DonotSee
   - Water
   - UI
   - 
