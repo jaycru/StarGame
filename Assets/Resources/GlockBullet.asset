@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: GlockBullet
   m_EditorClassIdentifier: 
   itemName: "\u683C\u6D1B\u514B\u5B50damn"
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 2d85f2718a12b604b8040870f34658b7, type: 3}
   description: "\u8FD9\u79CD\u4E1C\u897F\u8FD8\u662F\u591A\u62FF\u70B9\uFF0C\u6BD5\u7ADF\u2026\u2026\u4F60\u4E5F\u4E0D\u60F3\u4F60\u7684\u5934\u88AB\u8DD1\u6253\u9897\u79D2\u5427"

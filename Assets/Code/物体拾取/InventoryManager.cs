@@ -21,19 +21,19 @@ public class InventoryManager : MonoBehaviour
 
     void Start()
     {
-        // 1. 游戏开始时隐藏背包
-        if (inventoryPanel != null) inventoryPanel.SetActive(false);
-
-        // 2. 自动搜索 gridParent 下所有的格子脚本并存入名单
+        // 自动搜索 gridParent 下所有的格子脚本并存入名单
         if (gridParent != null)
         {
-            allSlots = gridParent.GetComponentsInChildren<InventorySlotUI>();
+            allSlots = gridParent.GetComponentsInChildren<InventorySlotUI>(true);
             Debug.Log($"背包系统初始化成功：共识别到 {allSlots.Length} 个存储格。");
         }
         else
         {
             Debug.LogError("错误：请在 Inspector 面板将 GridWindow 物体拖入 Grid Parent 槽位！");
         }
+
+        // 游戏开始时隐藏背包。格子收集要放在隐藏之前，或者使用 includeInactive。
+        if (inventoryPanel != null) inventoryPanel.SetActive(false);
     }
 
     void Update()
@@ -60,6 +60,10 @@ public class InventoryManager : MonoBehaviour
         }
         else
         {
+            if (TooltipManager.Instance != null)
+            {
+                TooltipManager.Instance.HideTooltip();
+            }
             // 关闭背包：重新锁定鼠标
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
@@ -67,30 +71,54 @@ public class InventoryManager : MonoBehaviour
         }
     }
 
-    public void AddItem(ItemAsset asset, int count)
+    public bool AddItem(ItemAsset asset, int count)
     {
+        if (asset == null)
+        {
+            Debug.LogWarning("拾取失败：物品数据为空！");
+            return false;
+        }
+
+        if (count <= 0)
+        {
+            Debug.LogWarning($"拾取失败：{asset.itemName} 的数量无效。");
+            return false;
+        }
+
+        if (allSlots == null || allSlots.Length == 0)
+        {
+            Debug.LogWarning("拾取失败：背包格子没有初始化！");
+            return false;
+        }
+
         // 1. 【堆叠逻辑】比对身份卡，而不是比对图片
         foreach (InventorySlotUI slot in allSlots)
         {
+            if (slot == null) continue;
+
             // 核心修改：判断格子里存的“身份卡”是否等于正要捡的“身份卡”
             if (slot.isFull && slot.currentItemAsset == asset)
             {
                 int currentCount = int.Parse(slot.amountText.text);
                 slot.SetItem(asset, currentCount + count);
                 Debug.Log($"{asset.itemName} 堆叠成功。");
-                return;
+                return true;
             }
         }
 
         // 2. 【寻找空位逻辑】保持不变
         foreach (InventorySlotUI slot in allSlots)
         {
+            if (slot == null) continue;
+
             if (!slot.isFull)
             {
                 slot.SetItem(asset, count);
-                return;
+                Debug.Log($"{asset.itemName} 已放入背包。");
+                return true;
             }
         }
         Debug.LogWarning("背包已满！");
+        return false;
     }
 }

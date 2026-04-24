@@ -29,6 +29,12 @@ public class TestGun : MonoBehaviour
     }
     void Update()
     {
+        if (Cursor.lockState != CursorLockMode.Locked || Cursor.visible)
+        {
+            EndFire();
+            return;
+        }
+
         ControlDirection();
         ControlFire();
         ControlReload();

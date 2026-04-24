@@ -18,8 +18,7 @@ public class InventorySlotUI : MonoBehaviour, IPointerEnterHandler, IPointerExit
 
     void Awake()
     {
-        // 初始时确保格子是空的
-        ClearSlot();
+        RefreshVisual();
     }
 
     /// <summary>
@@ -30,18 +29,32 @@ public class InventorySlotUI : MonoBehaviour, IPointerEnterHandler, IPointerExit
         currentItemAsset = asset;
         isFull = true;
 
+        RefreshVisual(count);
+    }
+
+    private void RefreshVisual(int count = 0)
+    {
+        if (!isFull || currentItemAsset == null)
+        {
+            ClearVisual();
+            return;
+        }
+
         // 设置图标
         if (iconImage != null)
         {
-            iconImage.sprite = asset.icon;
+            iconImage.sprite = currentItemAsset.icon;
             // 如果资产里没有图片，就把 Image 组件关掉，防止显示白方块
-            iconImage.enabled = (asset.icon != null);
+            iconImage.enabled = (currentItemAsset.icon != null);
         }
 
         // 设置数量文字
         if (amountText != null)
         {
-            amountText.text = count.ToString();
+            if (count > 0)
+            {
+                amountText.text = count.ToString();
+            }
             amountText.enabled = true;
         }
     }
@@ -54,6 +67,11 @@ public class InventorySlotUI : MonoBehaviour, IPointerEnterHandler, IPointerExit
         currentItemAsset = null;
         isFull = false;
 
+        ClearVisual();
+    }
+
+    private void ClearVisual()
+    {
         if (iconImage != null) iconImage.enabled = false;
         if (amountText != null) amountText.enabled = false;
     }

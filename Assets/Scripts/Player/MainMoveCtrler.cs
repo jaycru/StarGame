@@ -41,6 +41,8 @@ public class MainMoveCtrler : MonoBehaviour
 
     void FixedUpdate()
     {
+        if (Cursor.lockState != CursorLockMode.Locked || Cursor.visible) return;
+
         HandleLook();
         HandleMovement();
         ApplyGravityAndJump();

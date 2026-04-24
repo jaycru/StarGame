@@ -41,6 +41,8 @@ public class PauseManager : MonoBehaviour
         // 监听 Esc 键
         if (Input.GetKeyDown(KeyCode.Escape))
         {
+            if (InteractionManager.IsLootListOpen || InteractionManager.WasLootListClosedThisFrame) return;
+
             if (isPaused && settingsPanel.activeSelf)
             {
                 CloseSettingsInPause(); // 如果在设置里，按Esc返回暂停主页
