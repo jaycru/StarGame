@@ -25,9 +25,22 @@ public class Glock : MonoBehaviour
 
     void Update()
     {
+        if (ShouldBlockWeaponInput())
+        {
+            return;
+        }
+
         ControlDirection();
         ControlFire();
         ControlReload();
+    }
+
+    private bool ShouldBlockWeaponInput()
+    {
+        return Time.timeScale == 0f
+            || Cursor.lockState != CursorLockMode.Locked
+            || Cursor.visible
+            || InteractionManager.IsLootListOpen;
     }
 
     private void Initialize()
