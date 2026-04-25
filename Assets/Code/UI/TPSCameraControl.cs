@@ -30,7 +30,7 @@ public class TPSCameraControl : MonoBehaviour
     // 使用 LateUpdate 确保在玩家移动逻辑执行完后再更新相机位置，彻底消除抖动
     void LateUpdate()
     {
-        if (player == null || Time.timeScale == 0) return;
+        if (player == null || Time.timeScale == 0 || Cursor.lockState != CursorLockMode.Locked || Cursor.visible) return;
 
         // 1. 左右旋转：不再自己加减 Mouse X！
         // 直接读取玩家当前的 Y 轴旋转角度（确保永远同步）

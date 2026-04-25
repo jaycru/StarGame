@@ -22,7 +22,7 @@ public class PlayerMoveTest : MonoBehaviour
 
     void Update()
     {
-        if (Time.timeScale == 0) return;
+        if (Time.timeScale == 0 || Cursor.lockState != CursorLockMode.Locked || Cursor.visible) return;
 
         // 1. 左右旋转：由玩家身体独立完成
         float mouseX = Input.GetAxis("Mouse X") * baseSensitivity * sensitivityMultiplier;
