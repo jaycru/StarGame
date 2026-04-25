@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Glock : MonoBehaviour
+public class Glock : GUN
 {
     private float waitTime = 0.2f;//从按下左键到开火的间隔时间
     private int maxBullets = 20;
@@ -25,9 +25,22 @@ public class Glock : MonoBehaviour
 
     void Update()
     {
+        if (ShouldBlockWeaponInput())
+        {
+            return;
+        }
+
         ControlDirection();
         ControlFire();
         ControlReload();
+    }
+
+    private bool ShouldBlockWeaponInput()
+    {
+        return Time.timeScale == 0f
+            || Cursor.lockState != CursorLockMode.Locked
+            || Cursor.visible
+            || InteractionManager.IsLootListOpen;
     }
 
     private void Initialize()
@@ -71,7 +84,7 @@ public class Glock : MonoBehaviour
         TestGunBullet testGunBullet = new TestGunBullet(hit, bulletMouth.transform, bullet);
         testGunBullet.PutBullet();
         nowBullets--;
-        ammoTextComponent.Display(nowBullets);
+        HUDManager.Instance.UpdateAmmo(nowBullets, maxBullets);
         testGunBullet = null;
         Debug.Log("Shooting! now Bullets are : " + nowBullets);
         yield return new WaitForSeconds(waitTime);
@@ -91,9 +104,19 @@ public class Glock : MonoBehaviour
         isReloading = true;
         yield return new WaitForSeconds(reloadTime);
         isReloading = false;
-        nowBullets = maxBullets;
-        ammoTextComponent.Display(maxBullets);
+        GunManager.Instance.Reload(1, nowBullets);
+        HUDManager.Instance.UpdateAmmo(nowBullets, maxBullets);
         Debug.Log("Reloading! now Bullets are : " + nowBullets + "equals to " + maxBullets);
         reload = null;
+    }
+
+    public override int GetMaxBullets()
+    {
+        return maxBullets;
+    }
+
+    public override void AddBullets(int addBullets)
+    {
+        nowBullets += addBullets;
     }
 }

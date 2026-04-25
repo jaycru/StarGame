@@ -6,7 +6,7 @@ using UnityEngine;
 //创建人： Jaycr 
 //功能说明：测试用枪
 //***************************************** 
-public class TestGun : MonoBehaviour
+public class TestGun : GUN
 {
     private int maxBullets = 30;//最大弹匣容量
     private int nowBullets = 30;//当前子弹数
@@ -157,17 +157,22 @@ public class TestGun : MonoBehaviour
         isReloading = true;
         yield return new WaitForSeconds(reloadTime);
         isReloading = false;
-        nowBullets = maxBullets;
-        ammoTextComponent.Display(maxBullets);
+        GunManager.Instance.Reload(2, nowBullets);
+        HUDManager.Instance.UpdateAmmo(nowBullets, maxBullets);
         Debug.Log("Reloading! now Bullets are : " + nowBullets + "equals to " + maxBullets);
         Reload = null;
     }
 
-    /// <summary>
-    /// 标准化旋转
-    /// </summary>
-    public void StandardizeRotation()
+    public override int GetMaxBullets()
     {
-
+        return maxBullets;
     }
+    /// <summary>
+    /// 子弹增加
+    /// </summary>
+    /// <param name="addBullet">增加的子弹数</param>
+    public override void AddBullets(int addBullet)
+    {
+        nowBullets += addBullet;
+    }    
 }

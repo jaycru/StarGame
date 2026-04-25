@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 55d2a76cdc4d3bb4dac46ab23bd0a554, type: 3}
-  m_Name: "\u7F50\u5934"
+  m_Name: bullet2
   m_EditorClassIdentifier: 
-  itemName: "\u7F50\u5934"
-  icon: {fileID: 21300000, guid: 040aaa0269e833e479f108474111a2d8, type: 3}
-  bagObject: {fileID: 11400000, guid: d6dd2c302a1031b4483fe924bbd07c4d, type: 2}
-  description: "\u56DE\u590D\u751F\u547D\u7684\u57FA\u672C\u9053\u5177"
+  itemName: "AK\u5B50damn"
+  icon: {fileID: 21300000, guid: eb3702464ec738f4387fada0ef991296, type: 3}
+  bagObject: {fileID: 0}
+  description: "debug\u4E00\u665A\u4E0A\u7684\u4EA7\u54C1\n"
