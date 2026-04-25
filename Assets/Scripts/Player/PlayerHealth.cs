@@ -9,23 +9,40 @@ using UnityEngine;
 
 public class PlayerHealth : MonoBehaviour
 {
+    public static PlayerHealth Instance;
     // Start is called before the first frame update
     private int playerHitPoints;
     private int maxHP = 100;
     void Start()
     {
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
         playerHitPoints = maxHP;
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+        if (Input.GetKeyDown(KeyCode.H))
+        {
+            TakeDamage(20); // 按H键测试受伤
+        }
+        if (Input.GetKeyDown(KeyCode.J))
+        {
+            Heal(20); // 按J键测试治疗
+        }
     }
 
     public void TakeDamage(int damageAmount)
     {
         playerHitPoints = Mathf.Max(playerHitPoints - damageAmount, 0);
+        PlayerToUIManager.Instance.ChangeHealth(playerHitPoints, maxHP, false);
         if (playerHitPoints <= 0)
         {
             Die();
@@ -34,7 +51,11 @@ public class PlayerHealth : MonoBehaviour
 
     public void Heal(int healAmount)
     {
-        playerHitPoints = Mathf.Min(playerHitPoints + healAmount, maxHP);
+        if (playerHitPoints < maxHP)
+        {
+            playerHitPoints = Mathf.Min(playerHitPoints + healAmount, maxHP);
+            PlayerToUIManager.Instance.ChangeHealth(playerHitPoints, maxHP, true);
+        }
     }
 
     private void Die()

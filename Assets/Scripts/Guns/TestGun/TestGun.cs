@@ -139,7 +139,7 @@ public class TestGun : MonoBehaviour
             //循环更新数据
             n++;
             nowBullets--;
-            ammoTextComponent.Display(nowBullets);
+            HUDManager.Instance.UpdateAmmo(nowBullets, maxBullets);
             //打印调试信息
             Debug.Log("Shooting! now Bullets are : " + nowBullets);
             //返回间隔时间

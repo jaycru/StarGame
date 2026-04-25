@@ -38,8 +38,13 @@ public class PlayerToUIManager : MonoBehaviour
     /// </summary>
     /// <param name="newHp">新血量</param>
     /// <param name="maxHp">最大血量</param>
-    public void ChangeHealth(int newHp, int maxHp)
+    /// <param name="isUp">是否是增加血量（true）还是减少血量（false）</param>
+    public void ChangeHealth(int newHp, int maxHp, bool isUp)
     {
         hud.UpdateHealth(newHp, maxHp);
+        if (!isUp)
+        {
+            hud.PlayDamageEffect();
+        }
     }
 }
