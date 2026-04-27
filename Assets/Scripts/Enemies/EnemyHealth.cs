@@ -1,87 +1,68 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
-//*****************************************
-//创建人： pjjay
-//功能说明：敌军生命
-//***************************************** 
+
 public class EnemyHealth : MonoBehaviour
 {
-    [Header("UI")]
-    public Slider healthBar;
-    public Text healthText;
+    public int maxHealth = 100;
+    public int currentHealth;
 
-    [Header("颜色")]
-    public Color fullHealthColor = Color.red;
-    public Color lowHealthColor = Color.green;
+    public GameObject healthBarPrefab;
+    // 这里定义偏移量，方便在 Inspector 调整
+    public Vector3 healthBarOffset = new Vector3(0, 15f, 0);
 
-    [Header("数据")]
-    public float maxHealth = 100f;
-
-    public float currentHealth;
-    //public PlayerController playerController;
-    //TODO：这是什么东西？拿的什么引用？起什么作用？？
+    private HealthBarUI currentHealthBarInstance;
 
     private void Start()
     {
-        //playerController = GetComponent<PlayerController>();
-
-        //if (playerController == null)
-        //{
-        //    Debug.LogError("当前物体无PlayerController脚本");
-        //    return;
-        //}
-
         currentHealth = maxHealth;
 
-        if (healthBar != null)
+        if (healthBarPrefab != null)
         {
-            healthBar.maxValue = maxHealth;
-            healthBar.value = currentHealth;
-            if (healthBar.GetComponentInChildren<Image>())
-                healthBar.GetComponentInChildren<Image>().color = fullHealthColor;
+            // 1. 实例化血条
+            GameObject barObj = Instantiate(healthBarPrefab, transform.position + healthBarOffset, Quaternion.identity, this.transform);
 
-        }
+            // 2. 获取血条UI脚本组件
+            currentHealthBarInstance = barObj.GetComponent<HealthBarUI>();
 
-        UpdateUI();
-    }
-
-    public void TakeDamage(float damage)
-    {
-        currentHealth -= damage;
-        if (currentHealth < 0)
-            currentHealth = 0;
-
-        UpdateUI();
-    }
-
-    void UpdateUI()
-    {
-        if (healthBar != null)
-        {
-            healthBar.value = currentHealth;
-        }
-
-        if (healthText != null)
-        {
-            healthText.text = Mathf.CeilToInt(currentHealth) + "/" + maxHealth;
-        }
-
-        if (healthBar != null)
-        {
-            Image fillImage = healthBar.GetComponentInChildren<Image>();
-            if (fillImage != null)
+            if (currentHealthBarInstance != null)
             {
-                if (currentHealth <= maxHealth * 0.3f)
-                {
-                    fillImage.color = lowHealthColor;
-                }
-                else
-                {
-                    fillImage.color = fullHealthColor;
-                }
+                // 3. 【关键修改】告诉血条：你的目标是当前这个敌人！
+                currentHealthBarInstance.target = this.transform;
+
+                // 4. 初始化血量
+                currentHealthBarInstance.SetHealth(currentHealth, maxHealth);
             }
         }
+    }
+
+    public void TakeDamage(int damage)
+    {
+        currentHealth -= damage;
+        Debug.Log("敌人受到伤害，剩余血量：" + currentHealth);
+
+        if (currentHealthBarInstance != null)
+        {
+            currentHealthBarInstance.SetHealth(currentHealth, maxHealth);
+        }
+
+        if (currentHealth <= 0)
+        {
+            Die();
+        }
+    }
+
+    void Die()
+    {
+        Debug.Log("敌人已死亡");
+
+        // 销毁血条游戏物体
+        if (currentHealthBarInstance != null)
+        {
+            Destroy(currentHealthBarInstance.gameObject);
+        }
+
+        // 销毁敌人自己
+        Destroy(gameObject);
     }
 }

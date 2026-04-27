@@ -1,180 +1,272 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-//*****************************************
-//创建人： pjjay
-//功能说明：人机行为逻辑
-//***************************************** 
+using System.Collections;
+
+[RequireComponent(typeof(CharacterController))]
 public class EnemyAI : MonoBehaviour
 {
-    [Header("基础设置")]
-    public Transform player;
-    public float moveSpeed = 3.5f;
+    // --- 状态枚举 ---
+    enum AIState { Patrol, Chase }
+    AIState currentState = AIState.Patrol;
+
+    // --- 组件引用 ---
+    private CharacterController controller;
+    private Transform playerTransform;
+
+    // --- 参数设置 ---
+    [Header("侦测设置")]
+    public float detectRange = 15f;
+    public float viewAngle = 90f;
+
+    [Header("移动速度")]
+    public float patrolSpeed = 5f;
+    public float chaseSpeed = 20f;
+
+    [Header("巡逻设置")]
+    public float patrolRadius = 45f;
+    public float stopDistance = 1f;
     public float rotationSpeed = 10f;
 
-    [Header("视野")]
-    public float viewRadius = 10f;
-    public float viewAngle = 60f;
-    public LayerMask playerLayer;
-    public LayerMask obstacleLayer;
+    [Header("近战攻击")]
+    public float attackRange = 2f;
+    public float attackInterval = 1f;
+    public int attackDamage = 10;
 
-    [Header("攻击")]
-    public float attackRange = 1.5f;
-    public float attackDamage = 10f;
-    public float attackCooldown = 1.0f;
+    // --- 巡逻变量 ---
+    private Vector3 homePosition;
+    private Vector3 targetPosition;
 
-    [Header("呼叫支援")]
-    public float callForHelpRadius = 15f;
+    // --- 重力相关 ---
+    public float gravity = -9.81f;
+    private Vector3 velocity;
 
-    private float currentAttackCooldown = 0f;
-    private bool isChasing = false;
-    private float currentViewRadius;
-
-    enum EnemyState { Idle, Chase, Attack }
-    private EnemyState currentState = EnemyState.Idle;
+    // --- 攻击状态 ---
+    private bool isAttacking;
+    private Coroutine meleeAttackCoroutine;
 
     void Start()
     {
-        if (player == null)
+        controller = GetComponent<CharacterController>();
+        homePosition = transform.position;
+        SetNewRandomTarget();
+
+        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+        if (playerObj != null)
         {
-            GameObject p = GameObject.FindGameObjectWithTag("Player");
-            if (p) player = p.transform;
+            Debug.Log("playerObj is :" + playerObj.name);
+            playerTransform = playerObj.transform;
         }
-        currentViewRadius = viewRadius;
     }
 
     void Update()
     {
-        if (player == null) return;
-
-        bool isPlayerInView = CheckIfPlayerInView();
+        CheckForPlayer();
 
         switch (currentState)
         {
-            case EnemyState.Idle:
-                if (isPlayerInView)
-                {
-                    StartChase();
-                }
+            case AIState.Patrol:
+                PatrolLogic();
                 break;
-
-            case EnemyState.Chase:
-                if (isPlayerInView)
-                {
-                    MoveTowardsPlayer();
-
-                    float distToPlayer = Vector3.Distance(transform.position, player.position);
-                    if (distToPlayer <= attackRange)
-                    {
-                        currentState = EnemyState.Attack;
-                    }
-                }
-                else
-                {
-                    currentState = EnemyState.Idle;
-                }
-                break;
-
-            case EnemyState.Attack:
-                if (isPlayerInView && Vector3.Distance(transform.position, player.position) <= attackRange)
-                {
-                    AttackPlayer();
-                }
-                else
-                {
-                    currentState = EnemyState.Chase;
-                }
+            case AIState.Chase:
+                ChaseLogic();
                 break;
         }
+
+        ApplyGravity();
     }
 
-    bool CheckIfPlayerInView()
+    private void OnDisable()
     {
-        float distToPlayer = Vector3.Distance(transform.position, player.position);
-        if (distToPlayer > currentViewRadius) return false;
+        StopMeleeAttack();
+    }
 
-        Vector3 directionToPlayer = player.position - transform.position;
-        float angleToPlayer = Vector3.Angle(transform.forward, directionToPlayer);
-        if (angleToPlayer > viewAngle / 2f) return false;
+    void CheckForPlayer()
+    {
+        if (playerTransform == null) return;
 
-        if (Physics.Linecast(transform.position, player.position, obstacleLayer))
+        float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
+
+        if (distanceToPlayer <= detectRange)
         {
-            return false;
-        }
+            Vector3 directionToPlayer = playerTransform.position - transform.position;
+            directionToPlayer.y = 0;
 
-        return true;
-    }
+            float angle = Vector3.Angle(transform.forward, directionToPlayer);
 
-    void MoveTowardsPlayer()
-    {
-        Vector3 targetPos = new Vector3(player.position.x, transform.position.y, player.position.z);
-        transform.position = Vector3.MoveTowards(transform.position, targetPos, moveSpeed * Time.deltaTime);
-        Vector3 direction = (player.position - transform.position).normalized;
-        direction.y = 0;
-        if (direction != Vector3.zero)
-        {
-            Quaternion lookRotation = Quaternion.LookRotation(direction);
-            transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, rotationSpeed * Time.deltaTime);
-        }
-    }
-
-    void StartChase()
-    {
-        currentState = EnemyState.Chase;
-        CallNearbyEnemies();
-    }
-
-    void CallNearbyEnemies()
-    {
-        Collider[] hitColliders = Physics.OverlapSphere(transform.position, callForHelpRadius);
-        foreach (var hit in hitColliders)
-        {
-            if (hit.gameObject != this.gameObject)
+            if (angle < viewAngle / 2)
             {
-                EnemyAI otherEnemy = hit.GetComponent<EnemyAI>();
-                if (otherEnemy != null)
-                {
-                    if (otherEnemy.currentState == EnemyState.Idle)
-                    {
-                        otherEnemy.StartChase();
-                    }
-                }
+                currentState = AIState.Chase;
             }
-        }
-        Debug.DrawRay(transform.position, Vector3.up * 2, Color.yellow, 0.5f);
-    }
-    void AttackPlayer()
-    {
-        if (currentAttackCooldown <= 0)
-        {
-            Debug.Log($"敌人{gameObject.name}攻击了玩家！造成{attackDamage}点伤害");
-            //调用玩家扣血脚本
-            //改动：改动PlayerHealth为EnemyHealth
-            EnemyHealth playerCtrl = player.GetComponent<EnemyHealth>();
-            if (playerCtrl != null)
-            {
-                playerCtrl.TakeDamage(attackDamage);
-            }
-
-            currentAttackCooldown = attackCooldown;
         }
         else
         {
-            currentAttackCooldown -= Time.deltaTime;
+            currentState = AIState.Patrol;
+            StopMeleeAttack();
         }
+    }
+
+    void PatrolLogic()
+    {
+        StopMeleeAttack();
+        MoveTowards(targetPosition, patrolSpeed);
+
+        // 注意：这里只判断水平距离，防止高度差导致无法到达
+        Vector3 flatPos = transform.position;
+        Vector3 flatTarget = targetPosition;
+        flatPos.y = 0;
+        flatTarget.y = 0;
+
+        if (Vector3.Distance(flatPos, flatTarget) < stopDistance)
+        {
+            SetNewRandomTarget();
+        }
+    }
+
+    void ChaseLogic()
+    {
+        if (playerTransform == null)
+        {
+            StopMeleeAttack();
+            return;
+        }
+
+        float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
+        Debug.Log("距离玩家: " + distanceToPlayer);
+
+        // 已进入攻击状态时，保持静止（只朝向玩家，不执行追击移动）
+        if (isAttacking)
+        {
+            FaceTarget(playerTransform.position);
+
+            // 玩家脱离攻击范围则结束攻击，下一帧恢复追击
+            if (distanceToPlayer > attackRange)
+            {
+                StopMeleeAttack();
+            }
+            return;
+        }
+
+        if (distanceToPlayer <= attackRange)
+        {
+            FaceTarget(playerTransform.position);
+            meleeAttackCoroutine = StartCoroutine(MeleeAttackCoroutine());
+        }
+        else
+        {
+            MoveTowards(playerTransform.position, chaseSpeed);
+        }
+    }
+
+    IEnumerator MeleeAttackCoroutine()
+    {
+        isAttacking = true;
+        WaitForSeconds wait = new WaitForSeconds(attackInterval);
+
+        while (currentState == AIState.Chase && playerTransform != null)
+        {
+            float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
+            if (distanceToPlayer > attackRange)
+            {
+                break;
+            }
+
+            if (PlayerHealth.Instance != null)
+            {
+                PlayerHealth.Instance.TakeDamage(attackDamage);
+                Debug.Log(name + " 发起近战攻击，造成伤害: " + attackDamage);
+            }
+
+            yield return wait;
+        }
+
+        isAttacking = false;
+        meleeAttackCoroutine = null;
+    }
+
+    void StopMeleeAttack()
+    {
+        if (meleeAttackCoroutine != null)
+        {
+            StopCoroutine(meleeAttackCoroutine);
+            meleeAttackCoroutine = null;
+        }
+        isAttacking = false;
+    }
+
+    void FaceTarget(Vector3 target)
+    {
+        Vector3 direction = target - transform.position;
+        direction.y = 0;
+
+        if (direction.sqrMagnitude > 0.001f)
+        {
+            Quaternion targetRotation = Quaternion.LookRotation(direction);
+            transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, Time.deltaTime * rotationSpeed);
+        }
+    }
+
+    void SetNewRandomTarget()
+    {
+        // --- 修正部分 ---
+        Vector2 randomPoint = Random.insideUnitCircle * patrolRadius;
+
+        // randomPoint.x 对应 X轴
+        // randomPoint.y 对应 Z轴 (之前写成了 randomPoint.z 所以 Z 轴不动)
+        targetPosition = new Vector3(
+            homePosition.x + randomPoint.x,
+            transform.position.y, // 保持当前高度，防止摔倒或悬空
+            homePosition.z + randomPoint.y
+        );
+    }
+
+    void MoveTowards(Vector3 target, float speed)
+    {
+        Vector3 direction = target - transform.position;
+        direction.y = 0;
+
+        if (direction.magnitude > 0.1f)
+        {
+            Quaternion targetRotation = Quaternion.LookRotation(direction);
+            transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, Time.deltaTime * rotationSpeed);
+
+            controller.Move(direction.normalized * speed * Time.deltaTime);
+        }
+    }
+
+    void ApplyGravity()
+    {
+        if (controller.isGrounded)
+        {
+            if (velocity.y < 0)
+            {
+                velocity.y = -0.5f;
+            }
+        }
+        else
+        {
+            velocity.y += gravity * Time.deltaTime;
+        }
+
+        controller.Move(velocity * Time.deltaTime);
+    }
+
+    void LateUpdate()
+    {
+        transform.rotation = Quaternion.Euler(0, transform.rotation.eulerAngles.y, 0);
     }
 
     void OnDrawGizmosSelected()
     {
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, viewRadius);
+        Gizmos.color = new Color(1, 1, 0, 0.3f);
+        Gizmos.DrawSphere(transform.position, detectRange);
 
-        Gizmos.color = Color.yellow;
-        Vector3 direction = transform.forward;
-        Quaternion leftAngle = Quaternion.Euler(0, -viewAngle / 2, 0);
-        Quaternion rightAngle = Quaternion.Euler(0, viewAngle / 2, 0);
+        Gizmos.color = new Color(1, 0, 0, 0.2f);
+        Gizmos.DrawSphere(transform.position, attackRange);
 
-        Gizmos.DrawRay(transform.position, leftAngle * direction * viewRadius);
-        Gizmos.DrawRay(transform.position, rightAngle * direction * viewRadius);
+        if (Application.isPlaying)
+        {
+            Gizmos.color = new Color(0, 1, 1, 0.2f);
+            Vector3 center = new Vector3(homePosition.x, transform.position.y, homePosition.z);
+            Gizmos.DrawSphere(center, patrolRadius);
+        }
     }
 }

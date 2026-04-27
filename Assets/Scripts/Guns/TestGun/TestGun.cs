@@ -10,7 +10,7 @@ public class TestGun : GUN
 {
     private int maxBullets = 30;//最大弹匣容量
     private int nowBullets = 30;//当前子弹数
-    private int hit;//子弹伤害
+    private int hit = 30;//子弹伤害
     private float shootSpeed = 0.15f;//射速（射击间隔）
     private float reloadTime = 1f;//换弹时间
     private Coroutine Shoot = null;//发射子弹协程

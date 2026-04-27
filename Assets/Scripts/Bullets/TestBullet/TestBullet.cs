@@ -25,16 +25,6 @@ public class TestBullet : MonoBehaviour
         Move();
     } 
     /// <summary>
-    /// 控制碰撞（造成伤害）
-    /// </summary>
-    public void ControlHit()
-    {
-        if (isHit)
-        {
-            Hit();
-        }
-    }
-    /// <summary>
     /// 碰撞检测
     /// </summary>
     /// <returns></returns>
@@ -43,15 +33,15 @@ public class TestBullet : MonoBehaviour
         if (other.transform.tag == enemyTag)
         {
             Debug.Log("Successfully Hit!");
-            isHit = true;
+            EnemyHealth enemyHealth = other.GetComponent<EnemyHealth>();
+
+            if (enemyHealth != null)
+            {
+                Debug.Log("hit:" + hit);
+                enemyHealth.TakeDamage(hit);
+            }
+            Destroy(gameObject);
         }
-    }
-    /// <summary>
-    /// 管理碰撞
-    /// </summary>
-    private void Hit()
-    {
-        Destroy(gameObject);
     }
     /// <summary>
     /// 初始化面朝方向模块

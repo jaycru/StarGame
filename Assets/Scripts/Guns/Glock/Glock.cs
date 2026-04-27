@@ -7,7 +7,7 @@ public class Glock : GUN
     private float waitTime = 0.2f;//从按下左键到开火的间隔时间
     private int maxBullets = 20;
     private int nowBullets = 20;
-    private int hit;
+    private int hit = 20;
     private float reloadTime;
     private Coroutine shoot = null;
     private Coroutine reload = null;
