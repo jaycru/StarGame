@@ -9,6 +9,7 @@ using UnityEngine;
 public class TextOut : MonoBehaviour
 {
     private TextAsset textAsset;
+    private QuestData questData;//对话任务
     private GameObject nameText;//名字
     private GameObject chatText;//聊天
     private TextMeshProUGUI namePro;
@@ -64,6 +65,11 @@ public class TextOut : MonoBehaviour
     public void SetText(TextAsset textAsset)
     {
         this.textAsset = textAsset;
+    }
+
+    public void SetQuestData(QuestData questData)
+    {
+        this.questData = questData;
     }
 
     private string[] ReadLine()
@@ -146,7 +152,7 @@ public class TextOut : MonoBehaviour
         chatPro.text = lines[1];
         count = 1;
         AwakeBrother(true);
-        GameSceneManager.instance.SetGamePlayActive(false, null);
+        GameSceneManager.instance.SetGamePlayActive(false, null, questData);
     }
     /// <summary>
     /// 唤醒兄弟物体（即按钮）

@@ -7,17 +7,23 @@ using UnityEngine;
 //***************************************** 
 public class BeginChat : HoldButton
 {
+    private QuestData questData;//对话任务
     private TextAsset textAsset;
     private Transform chatTextTrans;
     private TextOut textOut;
     protected override void Effect()
     {
-        GameSceneManager.instance.SetGamePlayActive(true, textAsset);
+        GameSceneManager.instance.SetGamePlayActive(true, textAsset, questData);
         gameObject.SetActive(false);
     }
 
     public void SetText(TextAsset textAsset)
     {
         this.textAsset = textAsset;
+    }
+
+    public void SetQuestData(QuestData questData)
+    {
+        this.questData = questData;
     }
 }

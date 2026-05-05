@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 //*****************************************
 //创建人： Jaycr 
@@ -7,7 +8,8 @@ using UnityEngine;
 //***************************************** 
 public class Chat : MonoBehaviour
 {
-    public TextAsset chatText;
+    public TextAsset initialChatText;//初始对话文本（闲聊）
+    public QuestData questData;//任务对话
     private string player = "Player";
     private Transform askPanel;//对话按钮
 
@@ -22,7 +24,8 @@ public class Chat : MonoBehaviour
         {
             askPanel.gameObject.SetActive(true);
             askPanel.GetChild(0).gameObject.SetActive(true);
-            askPanel.GetChild(0).GetComponent<BeginChat>().SetText(chatText);
+            GainChatText();
+            askPanel.GetChild(0).GetChild(0).GetComponent<TextMeshProUGUI>().text = $"(F){gameObject.name}";
             Debug.Log("靠近！");
         }
     }
@@ -33,6 +36,23 @@ public class Chat : MonoBehaviour
         {
             askPanel.gameObject.SetActive(false);
             Debug.Log("退出！");
+        }
+    }
+    /// <summary>
+    /// 拿到对话文本
+    /// </summary>
+    private void GainChatText()
+    {
+        Debug.Log(questData.questId + " : " + QuestManager.Instance.GetQuestState(questData.questId));
+        if (QuestManager.Instance.GetQuestState(questData.questId) == QuestState.Available)
+        {
+            askPanel.GetChild(0).GetComponent<BeginChat>().SetText(questData.dialogueText);
+            askPanel.GetChild(0).GetComponent<BeginChat>().SetQuestData(questData);
+        }
+        else
+        {
+            askPanel.GetChild(0).GetComponent<BeginChat>().SetText(initialChatText);
+            askPanel.GetChild(0).GetComponent<BeginChat>().SetQuestData(null);
         }
     }
 }

@@ -74,7 +74,7 @@ GameObject:
   - component: {fileID: 1936824418984922093}
   m_Layer: 0
   m_Name: "\u654C\u4EBA1"
-  m_TagString: Enemy
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -205,7 +205,7 @@ GameObject:
   - component: {fileID: 4513230754723811962}
   m_Layer: 0
   m_Name: Enemy1
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -259,7 +259,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 731343897321769660}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6797b6fca1e495b4eb0ca4c72216aa41, type: 3}
   m_Name: 
@@ -271,6 +271,9 @@ MonoBehaviour:
   patrolRadius: 90
   stopDistance: 1
   rotationSpeed: 10
+  attackRange: 30
+  attackInterval: 1
+  attackDamage: 10
   gravity: -9.81
 --- !u!114 &4513230754723811962
 MonoBehaviour:
@@ -287,7 +290,7 @@ MonoBehaviour:
   maxHealth: 100
   currentHealth: 0
   healthBarPrefab: {fileID: 6384635126881892092, guid: 7384e97b831189749a9de37310af5a13, type: 3}
-  healthBarOffset: {x: 0, y: 1000, z: 0}
+  healthBarOffset: {x: 0, y: 20, z: 0}
 --- !u!1 &1308995719165652143
 GameObject:
   m_ObjectHideFlags: 0

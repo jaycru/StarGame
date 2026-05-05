@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 //*************************
 //创建人：Jaycr
@@ -54,20 +55,26 @@ public class GameSceneManager : MonoBehaviour
         mainCamera.clearFlags = CameraClearFlags.SolidColor;
         mainCamera.backgroundColor = Color.black;
         mainCamera.cullingMask = 0;
-        SetGamePlayActive(true, intoText);
+        SetGamePlayActive(true, intoText, null);
     }
     /// <summary>
     /// 设置游戏模式或者剧情（对话）模式
     /// 如若set为true，则进入游戏模式，玩家可以移动；如若set为false，则进入剧情模式，玩家无法移动，视角锁定，开始对话
     /// </summary>
-    public void SetGamePlayActive(bool set, TextAsset text)
+    public void SetGamePlayActive(bool set, TextAsset text, QuestData questData)
     {
         if (set)
         {
             //锁定时间戳
             Time.timeScale = 0;
-            //设定文本
+            //设定文本及任务对话
             textOut.SetText(text);
+            textOut.SetQuestData(questData);
+            //设定任务对话状态并更新任务名称
+            if (questData != null)
+            {
+                QuestManager.Instance.AcceptQuest(questData.questId);
+            }
             //显示文本
             chatText.transform.parent.gameObject.SetActive(true);
             chatText.SetActive(true);
@@ -89,6 +96,16 @@ public class GameSceneManager : MonoBehaviour
             }
             //解锁时间戳
             Time.timeScale = 1;
+            //完成任务对话
+            if (questData != null)
+            {
+                QuestManager.Instance.CompleteQuest(questData.questId);
+                if (questData.missionQuest != null)
+                {
+                    QuestManager.Instance.AcceptQuest(questData.missionQuest.questId, questData.missionQuest);
+                    Instantiate(questData.missionQuest.mission);
+                }
+            }
             //隐藏文本
             chatText.SetActive(false);
             //隐藏鼠标
