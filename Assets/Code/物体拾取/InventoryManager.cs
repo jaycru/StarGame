@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -137,6 +138,125 @@ public class InventoryManager : MonoBehaviour
 
         Debug.LogWarning("背包已满！");
         return false;
+    }
+
+    public List<InventorySaveItem> CreateInventorySaveData()
+    {
+        List<InventorySaveItem> result = new List<InventorySaveItem>();
+
+        if (allSlots == null)
+        {
+            return result;
+        }
+
+        foreach (InventorySlotUI slot in allSlots)
+        {
+            if (slot == null || !slot.isFull || slot.currentItemAsset == null)
+            {
+                continue;
+            }
+
+            string itemId = GetItemSaveId(slot.currentItemAsset);
+            if (string.IsNullOrWhiteSpace(itemId))
+            {
+                Debug.LogWarning("Save skipped an item with empty itemId: " + slot.currentItemAsset.name);
+                continue;
+            }
+
+            result.Add(new InventorySaveItem
+            {
+                itemId = itemId,
+                amount = slot.CurrentCount
+            });
+        }
+
+        return result;
+    }
+
+    public void LoadInventory(List<InventorySaveItem> savedItems)
+    {
+        ClearInventory();
+
+        if (savedItems == null)
+        {
+            return;
+        }
+
+        foreach (InventorySaveItem savedItem in savedItems)
+        {
+            if (savedItem == null || savedItem.amount <= 0)
+            {
+                continue;
+            }
+
+            ItemAsset asset = FindItemById(savedItem.itemId);
+            if (asset == null)
+            {
+                Debug.LogWarning("Load skipped missing itemId: " + savedItem.itemId);
+                continue;
+            }
+
+            AddItem(asset, savedItem.amount);
+        }
+    }
+
+    public void ClearInventory()
+    {
+        if (allSlots == null || allSlots.Length == 0)
+        {
+            if (gridParent != null)
+            {
+                allSlots = gridParent.GetComponentsInChildren<InventorySlotUI>(true);
+            }
+        }
+
+        if (allSlots == null)
+        {
+            return;
+        }
+
+        foreach (InventorySlotUI slot in allSlots)
+        {
+            if (slot != null)
+            {
+                slot.ClearSlot();
+            }
+        }
+    }
+
+    private ItemAsset FindItemById(string itemId)
+    {
+        if (string.IsNullOrWhiteSpace(itemId))
+        {
+            return null;
+        }
+
+        ItemAsset[] allItems = Resources.LoadAll<ItemAsset>("");
+
+        foreach (ItemAsset item in allItems)
+        {
+            if (item == null)
+            {
+                continue;
+            }
+
+            if (item.itemId == itemId || item.name == itemId)
+            {
+                return item;
+            }
+        }
+
+        return null;
+    }
+
+    private string GetItemSaveId(ItemAsset asset)
+    {
+        if (asset == null)
+        {
+            return string.Empty;
+        }
+
+        return string.IsNullOrWhiteSpace(asset.itemId) ? asset.name : asset.itemId;
     }
 
     public void OnSlotClicked(InventorySlotUI slot)
@@ -301,7 +421,10 @@ public class InventoryManager : MonoBehaviour
         if (selectedSlot == null || selectedSlot.currentItemAsset == null) return;
 
         string itemName = selectedSlot.currentItemAsset.itemName;
-        selectedSlot.currentItemAsset.bagObject.Use();
+        if (selectedSlot.currentItemAsset.bagObject != null)
+        {
+            selectedSlot.currentItemAsset.bagObject.Use();
+        }
         RemoveItemsFromSlot(selectedSlot, 1);
         Debug.Log($"使用了 1 个 {itemName}。");
         RefreshOrHideActionPanel();

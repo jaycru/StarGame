@@ -84,8 +84,9 @@ public class QuestManager : MonoBehaviour
     /// 结束对话，并解锁后续任务
     /// </summary>
     /// <param name="questId"></param>
+    /// <param name="needReset">是否需要显示当前无任务</param>
     /// <returns></returns>
-    public bool CompleteQuest(string questId)
+    public bool CompleteQuest(string questId, bool needReset = false)
     {
         Debug.Log("CompleteQuest: " + questId);
         Debug.Log("Current State:" + GetQuestState(questId));
@@ -96,7 +97,10 @@ public class QuestManager : MonoBehaviour
         OnQuestStateChanged?.Invoke(questId, QuestState.Completed);
         UnlockNextQuests(questId);
 
-        missionNameText.GetComponent<TextMeshProUGUI>().text = "当前无任务";
+        if (needReset)
+        {
+            missionNameText.GetComponent<TextMeshProUGUI>().text = "当前无任务";
+        }
 
         return true;
     }

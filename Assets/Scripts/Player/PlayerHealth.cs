@@ -8,6 +8,9 @@ public class PlayerHealth : MonoBehaviour
     // Start is called before the first frame update
     private int playerHitPoints;
     private int maxHP = 100;
+    public int CurrentHP => playerHitPoints;
+    public int MaxHP => maxHP;
+
 
     void Start()
     {
@@ -57,4 +60,20 @@ public class PlayerHealth : MonoBehaviour
     {
         Debug.Log("Player has died.");
     }
+
+    public void SetHealth(int hp)
+    {
+        playerHitPoints = Mathf.Clamp(hp, 0, maxHP);
+
+        if (PlayerToUIManager.Instance != null)
+        {
+            PlayerToUIManager.Instance.ChangeHealth(playerHitPoints, maxHP, true);
+        }
+
+        if (playerHitPoints <= 0)
+        {
+            Die();
+        }
+    }
+
 }

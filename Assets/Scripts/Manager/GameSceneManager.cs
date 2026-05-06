@@ -3,21 +3,21 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 //*************************
-//åˆ›å»ºäººï¼šJaycr
-//åˆ›å»ºæ—¶é—´ï¼š#CreateTime#
-//æè¿°ï¼š
+//´´½¨ÈË£ºJaycr
+//´´½¨Ê±¼ä£º#CreateTime#
+//ÃèÊö£º
 //*************************
 
 public class GameSceneManager : MonoBehaviour
 {
     private Camera mainCamera;
     public static GameSceneManager instance;
-    public TextAsset intoText;//å‰§æƒ…æ²‰æµ¸å¼å¸¦å…¥çš„æ–‡æœ¬
-    public GameObject chatText;//å¯¹è¯æ–‡æœ¬UIå—
-    private TextOut textOut;//å¯¹è¯æ–‡æœ¬UIå—ä¸Šçš„TextOutè„šæœ¬
-    private CameraClearFlags originalClearFlags;//ä¸»æ‘„åƒæœºåŸå§‹æ¸…é™¤æ ‡å¿—
-    private Color originalBackgroundColor;//ä¸»æ‘„åƒæœºåŸå§‹èƒŒæ™¯é¢œè‰²
-    private int originalCullingMask;//ä¸»æ‘„åƒæœºåŸå§‹å‰”é™¤å±‚
+    public TextAsset intoText;//¾çÇé³Á½şÊ½´øÈëµÄÎÄ±¾
+    public GameObject chatText;//¶Ô»°ÎÄ±¾UI¿é
+    private TextOut textOut;//¶Ô»°ÎÄ±¾UI¿éÉÏµÄTextOut½Å±¾
+    private CameraClearFlags originalClearFlags;//Ö÷ÉãÏñ»úÔ­Ê¼Çå³ı±êÖ¾
+    private Color originalBackgroundColor;//Ö÷ÉãÏñ»úÔ­Ê¼±³¾°ÑÕÉ«
+    private int originalCullingMask;//Ö÷ÉãÏñ»úÔ­Ê¼ÌŞ³ı²ã
 
     void Awake()
     {
@@ -33,20 +33,27 @@ public class GameSceneManager : MonoBehaviour
     }
     void Start()
     {
-        //åˆå§‹åŒ–å¯¹è¯æ–‡æœ¬UIå—
+        //³õÊ¼»¯¶Ô»°ÎÄ±¾UI¿é
         textOut = chatText.GetComponent<TextOut>();
-        //åˆå§‹åŒ–æ‘„åƒæœºåŸå§‹è®¾ç½®
+        //³õÊ¼»¯ÉãÏñ»úÔ­Ê¼ÉèÖÃ
         originalClearFlags = mainCamera.clearFlags;
         originalBackgroundColor = mainCamera.backgroundColor;
         originalCullingMask = mainCamera.cullingMask;
 
-        //å‰§æƒ…æ²‰æµ¸å¼å¸¦å…¥
-        StartIntoDialogue();
+        //¾çÇé³Á½şÊ½´øÈë
+        if (LoadRequest.isLoadingSave)
+        {
+
+        }
+        else
+        {
+            StartIntoDialogue();
+        }
     }
 
     void Update()
     {
-        
+
     }
 
     private void StartIntoDialogue()
@@ -58,35 +65,35 @@ public class GameSceneManager : MonoBehaviour
         SetGamePlayActive(true, intoText, null);
     }
     /// <summary>
-    /// è®¾ç½®æ¸¸æˆæ¨¡å¼æˆ–è€…å‰§æƒ…ï¼ˆå¯¹è¯ï¼‰æ¨¡å¼
-    /// å¦‚è‹¥setä¸ºtrueï¼Œåˆ™è¿›å…¥æ¸¸æˆæ¨¡å¼ï¼Œç©å®¶å¯ä»¥ç§»åŠ¨ï¼›å¦‚è‹¥setä¸ºfalseï¼Œåˆ™è¿›å…¥å‰§æƒ…æ¨¡å¼ï¼Œç©å®¶æ— æ³•ç§»åŠ¨ï¼Œè§†è§’é”å®šï¼Œå¼€å§‹å¯¹è¯
+    /// ÉèÖÃÓÎÏ·Ä£Ê½»òÕß¾çÇé£¨¶Ô»°£©Ä£Ê½
+    /// ÈçÈôsetÎªtrue£¬Ôò½øÈëÓÎÏ·Ä£Ê½£¬Íæ¼Ò¿ÉÒÔÒÆ¶¯£»ÈçÈôsetÎªfalse£¬Ôò½øÈë¾çÇéÄ£Ê½£¬Íæ¼ÒÎŞ·¨ÒÆ¶¯£¬ÊÓ½ÇËø¶¨£¬¿ªÊ¼¶Ô»°
     /// </summary>
     public void SetGamePlayActive(bool set, TextAsset text, QuestData questData)
     {
         if (set)
         {
-            //é”å®šæ—¶é—´æˆ³
+            //Ëø¶¨Ê±¼ä´Á
             Time.timeScale = 0;
-            //è®¾å®šæ–‡æœ¬åŠä»»åŠ¡å¯¹è¯
+            //Éè¶¨ÎÄ±¾¼°ÈÎÎñ¶Ô»°
             textOut.SetText(text);
             textOut.SetQuestData(questData);
-            //è®¾å®šä»»åŠ¡å¯¹è¯çŠ¶æ€å¹¶æ›´æ–°ä»»åŠ¡åç§°
+            //Éè¶¨ÈÎÎñ¶Ô»°×´Ì¬²¢¸üĞÂÈÎÎñÃû³Æ
             if (questData != null)
             {
                 QuestManager.Instance.AcceptQuest(questData.questId);
             }
-            //æ˜¾ç¤ºæ–‡æœ¬
+            //ÏÔÊ¾ÎÄ±¾
             chatText.transform.parent.gameObject.SetActive(true);
             chatText.SetActive(true);
-            //æ˜¾ç¤ºé¼ æ ‡
+            //ÏÔÊ¾Êó±ê
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
-            //æ‰“å°æ—¥å¿—
-            Debug.Log("è¿›å…¥å‰§æƒ…æ¨¡å¼");
+            //´òÓ¡ÈÕÖ¾
+            Debug.Log("½øÈë¾çÇéÄ£Ê½");
         }
         else
         {
-            //å¦‚æœä¸»æ‘„åƒæœºæœªæ¿€æ´»ï¼Œåˆ™æ¿€æ´»ä¸»æ‘„åƒæœº
+            //Èç¹ûÖ÷ÉãÏñ»úÎ´¼¤»î£¬Ôò¼¤»îÖ÷ÉãÏñ»ú
             if (mainCamera.cullingMask == 0)
             {
                 mainCamera.clearFlags = originalClearFlags;
@@ -94,9 +101,9 @@ public class GameSceneManager : MonoBehaviour
                 mainCamera.cullingMask = originalCullingMask;
                 textOut.AwakeBrother(false);
             }
-            //è§£é”æ—¶é—´æˆ³
+            //½âËøÊ±¼ä´Á
             Time.timeScale = 1;
-            //å®Œæˆä»»åŠ¡å¯¹è¯
+            //Íê³ÉÈÎÎñ¶Ô»°
             if (questData != null)
             {
                 QuestManager.Instance.CompleteQuest(questData.questId);
@@ -106,13 +113,13 @@ public class GameSceneManager : MonoBehaviour
                     Instantiate(questData.missionQuest.mission);
                 }
             }
-            //éšè—æ–‡æœ¬
+            //Òş²ØÎÄ±¾
             chatText.SetActive(false);
-            //éšè—é¼ æ ‡
+            //Òş²ØÊó±ê
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
-            //æ‰“å°æ—¥å¿—
-            Debug.Log("è¿›å…¥æ¸¸æˆæ¨¡å¼");
+            //´òÓ¡ÈÕÖ¾
+            Debug.Log("½øÈëÓÎÏ·Ä£Ê½");
         }
     }
 }

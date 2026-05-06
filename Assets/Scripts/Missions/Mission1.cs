@@ -22,7 +22,7 @@ public class Mission1 : MonoBehaviour
         if (currentEnemyInstance == null)
         {
             Debug.Log("Mission1: Enemy defeated!"); // 打印日志
-            QuestManager.Instance.CompleteQuest(questData.questId); // 完成任务
+            QuestManager.Instance.CompleteQuest(questData.questId, true); // 完成任务
             Destroy(gameObject); // 销毁任务脚本
         }
     }
