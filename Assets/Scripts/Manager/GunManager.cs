@@ -1,22 +1,16 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-//*************************
-//创建人：Jaycr
-//创建时间：#CreateTime#
-//描述：管理枪械核心功能，如换弹与子弹数量的关联
-//*************************
 
 public class GunManager : MonoBehaviour
 {
-    public InventorySlotUI[] inventorySlotUIs; 
-    public static GunManager Instance;//单例模式
-    public GameObject Gun;//枪械对象
-    private GUN gun;//枪械脚本
-    private int GlockBulletCount;//格洛克子弹数量
-    private int AKBulletCount;//AK子弹数量
-    // Start is called before the first frame update
-    void Start()
+    public InventorySlotUI[] inventorySlotUIs;
+    public static GunManager Instance;
+    public GameObject Gun;
+
+    private GUN gun;
+    private int GlockBulletCount;
+    private int AKBulletCount;
+
+    private void Start()
     {
         if (Instance == null)
         {
@@ -25,93 +19,168 @@ public class GunManager : MonoBehaviour
         else
         {
             Destroy(gameObject);
+            return;
         }
+
+        RefreshInventorySlots();
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-    /// <summary>
-    /// 换弹
-    /// </summary>
-    /// <param name="type">枪械类型，1为格洛克，2为AK</param>
-    /// <param name="nowBullet">当前子弹数量</param>
     public void Reload(int type, int nowBullet)
     {
-        int needBullet;
-        //更新所有子弹数量
+        if (Gun == null)
+        {
+            Debug.LogWarning("GunManager: Gun is not assigned.");
+            return;
+        }
+
         GetAllBullets();
-        //根据枪械类型获取枪械脚本，更新子弹数量
+
+        int needBullet = 0;
+
         switch (type)
         {
             case 1:
                 gun = Gun.GetComponent<Glock>();
+                if (gun == null)
+                {
+                    Debug.LogWarning("GunManager: Glock component was not found on Gun.");
+                    return;
+                }
+
                 needBullet = Mathf.Min(gun.GetMaxBullets() - nowBullet, GlockBulletCount);
                 EmptyBullet(GlockBulletCount);
                 GlockBulletCount -= needBullet;
-                HUDManager.Instance.UpdateAmmo(GlockBulletCount, gun.GetMaxBullets());
+                UpdateAmmoUI(GlockBulletCount, gun.GetMaxBullets());
                 break;
+
             case 2:
                 gun = Gun.GetComponent<TestGun>();
+                if (gun == null)
+                {
+                    Debug.LogWarning("GunManager: TestGun component was not found on Gun.");
+                    return;
+                }
+
                 needBullet = Mathf.Min(gun.GetMaxBullets() - nowBullet, AKBulletCount);
                 EmptyBullet(AKBulletCount);
                 AKBulletCount -= needBullet;
-                HUDManager.Instance.UpdateAmmo(AKBulletCount, gun.GetMaxBullets());
+                UpdateAmmoUI(AKBulletCount, gun.GetMaxBullets());
                 break;
+
             default:
-                needBullet = 0;
-                break;
+                Debug.LogWarning("GunManager: unknown bullet type " + type);
+                return;
         }
-        //将剩余子弹数量更新到UI显示
-        InventorySlotUI inventorySlotUI = GetBulletSlot(type);
-        if (inventorySlotUI != null)
+
+        needBullet = Mathf.Max(needBullet, 0);
+
+        InventorySlotUI bulletSlot = GetBulletSlot(type);
+        if (bulletSlot != null && InventoryManager.Instance != null && needBullet > 0)
         {
-            InventoryManager.Instance.RemoveItemsFromSlot(inventorySlotUI, needBullet);
+            InventoryManager.Instance.RemoveItemsFromSlot(bulletSlot, needBullet);
         }
-        //具体枪械增加子弹数量
-        gun.AddBullets(needBullet);
+
+        if (needBullet > 0)
+        {
+            gun.AddBullets(needBullet);
+        }
     }
 
     private void EmptyBullet(int bullets)
     {
         if (bullets == 0)
         {
-            Debug.Log("备用载弹量不足，无法换弹");
+            Debug.Log("No reserve bullets available.");
         }
     }
-    /// <summary>
-    /// 拿到子弹槽UI组件，以便更新子弹数量显示
-    /// </summary>
-    /// <returns></returns>
+
     private InventorySlotUI GetBulletSlot(int type)
     {
-        InventorySlotUI inventorySlotUI;
+        RefreshInventorySlots();
+
+        if (inventorySlotUIs == null || inventorySlotUIs.Length == 0)
+        {
+            return null;
+        }
+
         for (int i = 0; i < inventorySlotUIs.Length; i++)
         {
-            if (inventorySlotUIs[i].currentItemAsset != null)
+            InventorySlotUI slot = inventorySlotUIs[i];
+            if (slot == null || slot.currentItemAsset == null)
             {
-                ItemAsset item = inventorySlotUIs[i].currentItemAsset;
-                if (item.name == $"bullet{type}")
-                {
-                    inventorySlotUI = inventorySlotUIs[i];
-                    return inventorySlotUI;
-                }
+                continue;
+            }
+
+            if (IsBulletItem(slot.currentItemAsset, type))
+            {
+                return slot;
             }
         }
+
         return null;
     }
 
     private void GetAllBullets()
     {
-        if (GetBulletSlot(1) != null)
+        GlockBulletCount = 0;
+        AKBulletCount = 0;
+
+        InventorySlotUI glockBulletSlot = GetBulletSlot(1);
+        if (glockBulletSlot != null)
         {
-            GlockBulletCount = GetBulletSlot(1).CurrentCount;
+            GlockBulletCount = glockBulletSlot.CurrentCount;
         }
-        if (GetBulletSlot(2) != null)
+
+        InventorySlotUI akBulletSlot = GetBulletSlot(2);
+        if (akBulletSlot != null)
         {
-            AKBulletCount = GetBulletSlot(2).CurrentCount;
+            AKBulletCount = akBulletSlot.CurrentCount;
+        }
+    }
+
+    private void RefreshInventorySlots()
+    {
+        if (InventoryManager.Instance == null)
+        {
+            return;
+        }
+
+        if (InventoryManager.Instance.allSlots != null && InventoryManager.Instance.allSlots.Length > 0)
+        {
+            inventorySlotUIs = InventoryManager.Instance.allSlots;
+        }
+    }
+
+    private bool IsBulletItem(ItemAsset item, int type)
+    {
+        if (item == null)
+        {
+            return false;
+        }
+
+        if (item.name == "bullet" + type)
+        {
+            return true;
+        }
+
+        if (type == 1 && item.itemId == "glock_bullet")
+        {
+            return true;
+        }
+
+        if (type == 2 && item.itemId == "ak_bullet")
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private void UpdateAmmoUI(int current, int max)
+    {
+        if (HUDManager.Instance != null)
+        {
+            HUDManager.Instance.UpdateAmmo(current, max);
         }
     }
 }

@@ -3,6 +3,7 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "NewItem", menuName = "LogicCat/Item")]
 public class ItemAsset : ScriptableObject
 {
+    public string itemId; //存档时用于识别物体的id
     public string itemName;
     public Sprite icon;
     public BagObject bagObject;//对应的背包物体代码
