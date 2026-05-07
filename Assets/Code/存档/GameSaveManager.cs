@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -114,6 +115,8 @@ public class GameSaveManager : MonoBehaviour
             data.inventory = InventoryManager.Instance.CreateInventorySaveData();
         }
 
+        data.lootContainers = CreateLootContainerSaveData();
+
         return data;
     }
 
@@ -158,6 +161,8 @@ public class GameSaveManager : MonoBehaviour
             InventoryManager.Instance.LoadInventory(data.inventory);
         }
 
+        ApplyLootContainerSaveData(data.lootContainers);
+
         if (GameSceneManager.instance != null)
         {
             GameSceneManager.instance.SetGamePlayActive(false, null, null);
@@ -182,5 +187,145 @@ public class GameSaveManager : MonoBehaviour
         {
             player = taggedPlayer.transform;
         }
+    }
+
+    private List<LootContainerSaveData> CreateLootContainerSaveData()
+    {
+        List<LootContainerSaveData> result = new List<LootContainerSaveData>();
+        Interactable[] containers = FindObjectsOfType<Interactable>(true);
+
+        foreach (Interactable container in containers)
+        {
+            if (container == null || container.type != InteractType.LootList)
+            {
+                continue;
+            }
+
+            LootContainerSaveData containerData = new LootContainerSaveData
+            {
+                containerId = container.GetSaveId(),
+                items = new List<InventorySaveItem>()
+            };
+
+            foreach (LootItem lootItem in container.itemsInObject)
+            {
+                if (lootItem == null || lootItem.details == null || lootItem.amount <= 0)
+                {
+                    continue;
+                }
+
+                string itemId = GetItemSaveId(lootItem.details);
+                if (string.IsNullOrWhiteSpace(itemId))
+                {
+                    Debug.LogWarning("Loot save skipped an item with empty itemId in container: " + containerData.containerId);
+                    continue;
+                }
+
+                containerData.items.Add(new InventorySaveItem
+                {
+                    itemId = itemId,
+                    amount = lootItem.amount
+                });
+            }
+
+            result.Add(containerData);
+        }
+
+        return result;
+    }
+
+    private void ApplyLootContainerSaveData(List<LootContainerSaveData> savedContainers)
+    {
+        if (savedContainers == null)
+        {
+            return;
+        }
+
+        Dictionary<string, LootContainerSaveData> savedById = new Dictionary<string, LootContainerSaveData>();
+        foreach (LootContainerSaveData savedContainer in savedContainers)
+        {
+            if (savedContainer == null || string.IsNullOrWhiteSpace(savedContainer.containerId))
+            {
+                continue;
+            }
+
+            savedById[savedContainer.containerId] = savedContainer;
+        }
+
+        Interactable[] containers = FindObjectsOfType<Interactable>(true);
+        foreach (Interactable container in containers)
+        {
+            if (container == null || container.type != InteractType.LootList)
+            {
+                continue;
+            }
+
+            if (!savedById.TryGetValue(container.GetSaveId(), out LootContainerSaveData savedContainer))
+            {
+                continue;
+            }
+
+            container.itemsInObject.Clear();
+
+            if (savedContainer.items == null)
+            {
+                continue;
+            }
+
+            foreach (InventorySaveItem savedItem in savedContainer.items)
+            {
+                if (savedItem == null || savedItem.amount <= 0)
+                {
+                    continue;
+                }
+
+                ItemAsset asset = FindItemById(savedItem.itemId);
+                if (asset == null)
+                {
+                    Debug.LogWarning("Loot load skipped missing itemId: " + savedItem.itemId);
+                    continue;
+                }
+
+                container.itemsInObject.Add(new LootItem
+                {
+                    details = asset,
+                    amount = savedItem.amount
+                });
+            }
+        }
+    }
+
+    private ItemAsset FindItemById(string itemId)
+    {
+        if (string.IsNullOrWhiteSpace(itemId))
+        {
+            return null;
+        }
+
+        ItemAsset[] allItems = Resources.LoadAll<ItemAsset>("");
+        foreach (ItemAsset item in allItems)
+        {
+            if (item == null)
+            {
+                continue;
+            }
+
+            if (GetItemSaveId(item) == itemId || item.name == itemId)
+            {
+                return item;
+            }
+        }
+
+        return null;
+    }
+
+    private string GetItemSaveId(ItemAsset asset)
+    {
+        if (asset == null)
+        {
+            return string.Empty;
+        }
+
+        return string.IsNullOrWhiteSpace(asset.itemId) ? asset.name : asset.itemId;
     }
 }

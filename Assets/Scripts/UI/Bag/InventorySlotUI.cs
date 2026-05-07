@@ -16,17 +16,25 @@ public class InventorySlotUI : MonoBehaviour, IPointerEnterHandler, IPointerExit
     [SerializeField] private int currentCount;
 
     public int CurrentCount => currentCount;
+    public bool HasItem => isFull && currentItemAsset != null && currentCount > 0;
 
     private void Awake()
     {
+        NormalizeState();
         RefreshVisual();
     }
 
     public void SetItem(ItemAsset asset, int count)
     {
+        if (asset == null || count <= 0)
+        {
+            ClearSlot();
+            return;
+        }
+
         currentItemAsset = asset;
-        currentCount = Mathf.Max(count, 0);
-        isFull = currentItemAsset != null && currentCount > 0;
+        currentCount = count;
+        isFull = true;
         RefreshVisual();
     }
 
@@ -40,7 +48,7 @@ public class InventorySlotUI : MonoBehaviour, IPointerEnterHandler, IPointerExit
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        if (!isFull || currentItemAsset == null) return;
+        if (!HasItem) return;
 
         if (TooltipManager.Instance != null)
         {
@@ -59,7 +67,7 @@ public class InventorySlotUI : MonoBehaviour, IPointerEnterHandler, IPointerExit
     public void OnPointerClick(PointerEventData eventData)
     {
         if (eventData.button != PointerEventData.InputButton.Left) return;
-        if (!isFull || currentItemAsset == null) return;
+        if (!HasItem) return;
 
         if (TooltipManager.Instance != null)
         {
@@ -74,7 +82,7 @@ public class InventorySlotUI : MonoBehaviour, IPointerEnterHandler, IPointerExit
 
     private void RefreshVisual()
     {
-        if (!isFull || currentItemAsset == null || currentCount <= 0)
+        if (!HasItem)
         {
             ClearVisual();
             return;
@@ -106,5 +114,18 @@ public class InventorySlotUI : MonoBehaviour, IPointerEnterHandler, IPointerExit
             amountText.text = string.Empty;
             amountText.enabled = false;
         }
+    }
+
+    private void NormalizeState()
+    {
+        if (currentItemAsset == null || currentCount <= 0)
+        {
+            currentItemAsset = null;
+            currentCount = 0;
+            isFull = false;
+            return;
+        }
+
+        isFull = true;
     }
 }

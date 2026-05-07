@@ -211,7 +211,11 @@ public class InteractionManager : MonoBehaviour
 
         if (!added)
         {
-            Debug.LogWarning($"拾取失败：{item.details.itemName} 未加入背包，物品保留在箱子中。");
+            string reason = InventoryManager.Instance != null
+                ? InventoryManager.Instance.LastAddItemFailureReason
+                : "场景中找不到 InventoryManager";
+
+            Debug.LogWarning($"拾取失败：{item.details.itemName} 未加入背包，物品保留在箱子中。原因：{reason}");
             return;
         }
 

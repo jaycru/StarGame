@@ -14,6 +14,8 @@ public class InventoryManager : MonoBehaviour
     [Header("Slots")]
     public InventorySlotUI[] allSlots;
 
+    public string LastAddItemFailureReason { get; private set; }
+
     private InventorySlotUI selectedSlot;
     private GameObject itemActionBlocker;
     private GameObject itemActionPanel;
@@ -30,22 +32,25 @@ public class InventoryManager : MonoBehaviour
 
     private void Awake()
     {
-        if (Instance == null)
+        if (Instance != null && Instance != this)
         {
-            Instance = this;
+            Debug.LogWarning("场景中存在多个 InventoryManager，已使用当前激活的背包管理器。");
         }
+
+        Instance = this;
     }
 
     private void Start()
     {
-        if (gridParent != null)
+        RefreshSlots();
+
+        if (allSlots != null && allSlots.Length > 0)
         {
-            allSlots = gridParent.GetComponentsInChildren<InventorySlotUI>(true);
             Debug.Log($"背包系统初始化成功：共识别到 {allSlots.Length} 个存储格。");
         }
         else
         {
-            Debug.LogError("错误：请在 Inspector 面板将 GridWindow 物体拖入 Grid Parent 槽位！");
+            Debug.LogError("背包系统初始化失败：没有识别到任何 InventorySlotUI。请检查 Grid Parent 是否指向 GridWindow，并确认每个背包格子都挂有 InventorySlotUI 脚本。");
         }
 
         EnsureItemActionPanel();
@@ -94,20 +99,26 @@ public class InventoryManager : MonoBehaviour
 
     public bool AddItem(ItemAsset asset, int count)
     {
+        LastAddItemFailureReason = string.Empty;
+
         if (asset == null)
         {
+            LastAddItemFailureReason = "物品数据为空";
             Debug.LogWarning("拾取失败：物品数据为空！");
             return false;
         }
 
         if (count <= 0)
         {
-            Debug.LogWarning($"拾取失败：{asset.itemName} 的数量无效。");
-            return false;
+            Debug.LogWarning($"拾取数量无效：{asset.itemName} 的数量是 {count}，已按 1 个处理。");
+            count = 1;
         }
+
+        RefreshSlots();
 
         if (allSlots == null || allSlots.Length == 0)
         {
+            LastAddItemFailureReason = "背包格子没有初始化，检查 InventoryManager 的 Grid Parent 是否指向 GridWindow";
             Debug.LogWarning("拾取失败：背包格子没有初始化！");
             return false;
         }
@@ -115,8 +126,9 @@ public class InventoryManager : MonoBehaviour
         foreach (InventorySlotUI slot in allSlots)
         {
             if (slot == null) continue;
+            NormalizeSlotState(slot);
 
-            if (slot.isFull && slot.currentItemAsset == asset)
+            if (slot.HasItem && IsSameInventoryItem(slot.currentItemAsset, asset))
             {
                 slot.SetItem(asset, slot.CurrentCount + count);
                 Debug.Log($"{asset.itemName} 堆叠成功。");
@@ -127,8 +139,9 @@ public class InventoryManager : MonoBehaviour
         foreach (InventorySlotUI slot in allSlots)
         {
             if (slot == null) continue;
+            NormalizeSlotState(slot);
 
-            if (!slot.isFull)
+            if (!slot.HasItem)
             {
                 slot.SetItem(asset, count);
                 Debug.Log($"{asset.itemName} 已放入背包。");
@@ -136,8 +149,108 @@ public class InventoryManager : MonoBehaviour
             }
         }
 
-        Debug.LogWarning("背包已满！");
+        LastAddItemFailureReason = "没有可用空格子，也没有可堆叠的同类物品。" + BuildSlotDebugSummary();
+        Debug.LogWarning($"背包已满，无法拾取 {asset.itemName}。{BuildSlotDebugSummary()}");
         return false;
+    }
+
+    private void RefreshSlots()
+    {
+        if (gridParent != null)
+        {
+            InventorySlotUI[] slotsInGrid = gridParent.GetComponentsInChildren<InventorySlotUI>(true);
+            if (slotsInGrid != null && slotsInGrid.Length > 0)
+            {
+                allSlots = slotsInGrid;
+                return;
+            }
+        }
+
+        if (inventoryPanel != null)
+        {
+            InventorySlotUI[] slotsInPanel = inventoryPanel.GetComponentsInChildren<InventorySlotUI>(true);
+            if (slotsInPanel != null && slotsInPanel.Length > 0)
+            {
+                allSlots = slotsInPanel;
+                return;
+            }
+        }
+
+        InventorySlotUI[] slotsInScene = FindObjectsOfType<InventorySlotUI>(true);
+        if (slotsInScene != null && slotsInScene.Length > 0)
+        {
+            allSlots = slotsInScene;
+        }
+    }
+
+    private void NormalizeSlotState(InventorySlotUI slot)
+    {
+        if (slot == null) return;
+
+        if (slot.currentItemAsset == null || slot.CurrentCount <= 0)
+        {
+            slot.ClearSlot();
+            return;
+        }
+
+        if (!slot.isFull)
+        {
+            slot.SetItem(slot.currentItemAsset, slot.CurrentCount);
+        }
+    }
+
+    private bool IsSameInventoryItem(ItemAsset first, ItemAsset second)
+    {
+        if (first == null || second == null)
+        {
+            return false;
+        }
+
+        if (first == second)
+        {
+            return true;
+        }
+
+        string firstId = GetItemSaveId(first);
+        string secondId = GetItemSaveId(second);
+        if (!string.IsNullOrWhiteSpace(firstId) && !string.IsNullOrWhiteSpace(secondId))
+        {
+            return firstId == secondId;
+        }
+
+        return first.name == second.name;
+    }
+
+    private string BuildSlotDebugSummary()
+    {
+        if (allSlots == null)
+        {
+            return "当前 allSlots 为 null。";
+        }
+
+        int nullSlots = 0;
+        int emptySlots = 0;
+        int occupiedSlots = 0;
+
+        foreach (InventorySlotUI slot in allSlots)
+        {
+            if (slot == null)
+            {
+                nullSlots++;
+                continue;
+            }
+
+            if (slot.HasItem)
+            {
+                occupiedSlots++;
+            }
+            else
+            {
+                emptySlots++;
+            }
+        }
+
+        return $"格子总数：{allSlots.Length}，空格：{emptySlots}，已有物品格：{occupiedSlots}，空引用格：{nullSlots}。";
     }
 
     public List<InventorySaveItem> CreateInventorySaveData()
